@@ -49,6 +49,8 @@ public class CacheConfiguration {
             createCache(cm, org.raecipe.domain.Authority.class.getName());
             createCache(cm, org.raecipe.domain.User.class.getName() + ".authorities");
             createCache(cm, org.raecipe.domain.Recipe.class.getName());
+            createCache(cm, org.raecipe.domain.Book.class.getName());
+            createCache(cm, org.raecipe.domain.Book.class.getName() + ".recipes");
             // jhipster-needle-ehcache-add-entry
         };
     }
