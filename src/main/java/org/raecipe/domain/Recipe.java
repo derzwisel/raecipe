@@ -8,6 +8,7 @@ import javax.validation.constraints.*;
 
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.io.Serializable;
+import java.time.Duration;
 
 /**
  * A Recipe.
@@ -29,6 +30,12 @@ public class Recipe implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "duration")
+    private Duration duration;
+
+    @Column(name = "instructions")
+    private String instructions;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
     public Long getId() {
         return id;
@@ -49,6 +56,32 @@ public class Recipe implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public Recipe duration(Duration duration) {
+        this.duration = duration;
+        return this;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public String getInstructions() {
+        return instructions;
+    }
+
+    public Recipe instructions(String instructions) {
+        this.instructions = instructions;
+        return this;
+    }
+
+    public void setInstructions(String instructions) {
+        this.instructions = instructions;
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
@@ -74,6 +107,8 @@ public class Recipe implements Serializable {
         return "Recipe{" +
             "id=" + getId() +
             ", name='" + getName() + "'" +
+            ", duration='" + getDuration() + "'" +
+            ", instructions='" + getInstructions() + "'" +
             "}";
     }
 }
