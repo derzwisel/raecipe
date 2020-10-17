@@ -10,6 +10,7 @@ import io.github.jhipster.service.filter.FloatFilter;
 import io.github.jhipster.service.filter.IntegerFilter;
 import io.github.jhipster.service.filter.LongFilter;
 import io.github.jhipster.service.filter.StringFilter;
+import io.github.jhipster.service.filter.DurationFilter;
 
 /**
  * Criteria class for the {@link org.raecipe.domain.Recipe} entity. This class is used
@@ -28,12 +29,18 @@ public class RecipeCriteria implements Serializable, Criteria {
 
     private StringFilter name;
 
+    private DurationFilter duration;
+
+    private StringFilter instructions;
+
     public RecipeCriteria() {
     }
 
     public RecipeCriteria(RecipeCriteria other) {
         this.id = other.id == null ? null : other.id.copy();
         this.name = other.name == null ? null : other.name.copy();
+        this.duration = other.duration == null ? null : other.duration.copy();
+        this.instructions = other.instructions == null ? null : other.instructions.copy();
     }
 
     @Override
@@ -57,6 +64,22 @@ public class RecipeCriteria implements Serializable, Criteria {
         this.name = name;
     }
 
+    public DurationFilter getDuration() {
+        return duration;
+    }
+
+    public void setDuration(DurationFilter duration) {
+        this.duration = duration;
+    }
+
+    public StringFilter getInstructions() {
+        return instructions;
+    }
+
+    public void setInstructions(StringFilter instructions) {
+        this.instructions = instructions;
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -69,14 +92,18 @@ public class RecipeCriteria implements Serializable, Criteria {
         final RecipeCriteria that = (RecipeCriteria) o;
         return
             Objects.equals(id, that.id) &&
-            Objects.equals(name, that.name);
+            Objects.equals(name, that.name) &&
+            Objects.equals(duration, that.duration) &&
+            Objects.equals(instructions, that.instructions);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
         id,
-        name
+        name,
+        duration,
+        instructions
         );
     }
 
@@ -86,6 +113,8 @@ public class RecipeCriteria implements Serializable, Criteria {
         return "RecipeCriteria{" +
                 (id != null ? "id=" + id + ", " : "") +
                 (name != null ? "name=" + name + ", " : "") +
+                (duration != null ? "duration=" + duration + ", " : "") +
+                (instructions != null ? "instructions=" + instructions + ", " : "") +
             "}";
     }
 

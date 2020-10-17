@@ -7,6 +7,15 @@
       "fieldName": "name",
       "fieldType": "String",
       "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "duration",
+      "fieldType": "Duration",
+      "fieldValidateRules": []
+    },
+    {
+      "fieldName": "instructions",
+      "fieldType": "String"
     }
   ],
   "changelogDate": "20201017143434",

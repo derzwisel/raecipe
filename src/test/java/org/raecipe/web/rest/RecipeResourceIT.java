@@ -25,6 +25,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,6 +47,13 @@ public class RecipeResourceIT {
 
     private static final String DEFAULT_NAME = "AAAAAAAAAA";
     private static final String UPDATED_NAME = "BBBBBBBBBB";
+
+    private static final Duration DEFAULT_DURATION = Duration.ofHours(6);
+    private static final Duration UPDATED_DURATION = Duration.ofHours(12);
+    private static final Duration SMALLER_DURATION = Duration.ofHours(5);
+
+    private static final String DEFAULT_INSTRUCTIONS = "AAAAAAAAAA";
+    private static final String UPDATED_INSTRUCTIONS = "BBBBBBBBBB";
 
     @Autowired
     private RecipeRepository recipeRepository;
@@ -83,7 +91,9 @@ public class RecipeResourceIT {
      */
     public static Recipe createEntity(EntityManager em) {
         Recipe recipe = new Recipe()
-            .name(DEFAULT_NAME);
+            .name(DEFAULT_NAME)
+            .duration(DEFAULT_DURATION)
+            .instructions(DEFAULT_INSTRUCTIONS);
         return recipe;
     }
     /**
@@ -94,7 +104,9 @@ public class RecipeResourceIT {
      */
     public static Recipe createUpdatedEntity(EntityManager em) {
         Recipe recipe = new Recipe()
-            .name(UPDATED_NAME);
+            .name(UPDATED_NAME)
+            .duration(UPDATED_DURATION)
+            .instructions(UPDATED_INSTRUCTIONS);
         return recipe;
     }
 
@@ -119,6 +131,8 @@ public class RecipeResourceIT {
         assertThat(recipeList).hasSize(databaseSizeBeforeCreate + 1);
         Recipe testRecipe = recipeList.get(recipeList.size() - 1);
         assertThat(testRecipe.getName()).isEqualTo(DEFAULT_NAME);
+        assertThat(testRecipe.getDuration()).isEqualTo(DEFAULT_DURATION);
+        assertThat(testRecipe.getInstructions()).isEqualTo(DEFAULT_INSTRUCTIONS);
 
         // Validate the Recipe in Elasticsearch
         verify(mockRecipeSearchRepository, times(1)).save(testRecipe);
@@ -179,7 +193,9 @@ public class RecipeResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(recipe.getId().intValue())))
-            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)));
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
+            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())))
+            .andExpect(jsonPath("$.[*].instructions").value(hasItem(DEFAULT_INSTRUCTIONS)));
     }
     
     @Test
@@ -193,7 +209,9 @@ public class RecipeResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(recipe.getId().intValue()))
-            .andExpect(jsonPath("$.name").value(DEFAULT_NAME));
+            .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
+            .andExpect(jsonPath("$.duration").value(DEFAULT_DURATION.toString()))
+            .andExpect(jsonPath("$.instructions").value(DEFAULT_INSTRUCTIONS));
     }
 
 
@@ -293,6 +311,189 @@ public class RecipeResourceIT {
         defaultRecipeShouldBeFound("name.doesNotContain=" + UPDATED_NAME);
     }
 
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration equals to DEFAULT_DURATION
+        defaultRecipeShouldBeFound("duration.equals=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration equals to UPDATED_DURATION
+        defaultRecipeShouldNotBeFound("duration.equals=" + UPDATED_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration not equals to DEFAULT_DURATION
+        defaultRecipeShouldNotBeFound("duration.notEquals=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration not equals to UPDATED_DURATION
+        defaultRecipeShouldBeFound("duration.notEquals=" + UPDATED_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsInShouldWork() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration in DEFAULT_DURATION or UPDATED_DURATION
+        defaultRecipeShouldBeFound("duration.in=" + DEFAULT_DURATION + "," + UPDATED_DURATION);
+
+        // Get all the recipeList where duration equals to UPDATED_DURATION
+        defaultRecipeShouldNotBeFound("duration.in=" + UPDATED_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration is not null
+        defaultRecipeShouldBeFound("duration.specified=true");
+
+        // Get all the recipeList where duration is null
+        defaultRecipeShouldNotBeFound("duration.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsGreaterThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration is greater than or equal to DEFAULT_DURATION
+        defaultRecipeShouldBeFound("duration.greaterThanOrEqual=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration is greater than or equal to UPDATED_DURATION
+        defaultRecipeShouldNotBeFound("duration.greaterThanOrEqual=" + UPDATED_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsLessThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration is less than or equal to DEFAULT_DURATION
+        defaultRecipeShouldBeFound("duration.lessThanOrEqual=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration is less than or equal to SMALLER_DURATION
+        defaultRecipeShouldNotBeFound("duration.lessThanOrEqual=" + SMALLER_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsLessThanSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration is less than DEFAULT_DURATION
+        defaultRecipeShouldNotBeFound("duration.lessThan=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration is less than UPDATED_DURATION
+        defaultRecipeShouldBeFound("duration.lessThan=" + UPDATED_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsGreaterThanSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration is greater than DEFAULT_DURATION
+        defaultRecipeShouldNotBeFound("duration.greaterThan=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration is greater than SMALLER_DURATION
+        defaultRecipeShouldBeFound("duration.greaterThan=" + SMALLER_DURATION);
+    }
+
+
+    @Test
+    @Transactional
+    public void getAllRecipesByInstructionsIsEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where instructions equals to DEFAULT_INSTRUCTIONS
+        defaultRecipeShouldBeFound("instructions.equals=" + DEFAULT_INSTRUCTIONS);
+
+        // Get all the recipeList where instructions equals to UPDATED_INSTRUCTIONS
+        defaultRecipeShouldNotBeFound("instructions.equals=" + UPDATED_INSTRUCTIONS);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByInstructionsIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where instructions not equals to DEFAULT_INSTRUCTIONS
+        defaultRecipeShouldNotBeFound("instructions.notEquals=" + DEFAULT_INSTRUCTIONS);
+
+        // Get all the recipeList where instructions not equals to UPDATED_INSTRUCTIONS
+        defaultRecipeShouldBeFound("instructions.notEquals=" + UPDATED_INSTRUCTIONS);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByInstructionsIsInShouldWork() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where instructions in DEFAULT_INSTRUCTIONS or UPDATED_INSTRUCTIONS
+        defaultRecipeShouldBeFound("instructions.in=" + DEFAULT_INSTRUCTIONS + "," + UPDATED_INSTRUCTIONS);
+
+        // Get all the recipeList where instructions equals to UPDATED_INSTRUCTIONS
+        defaultRecipeShouldNotBeFound("instructions.in=" + UPDATED_INSTRUCTIONS);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByInstructionsIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where instructions is not null
+        defaultRecipeShouldBeFound("instructions.specified=true");
+
+        // Get all the recipeList where instructions is null
+        defaultRecipeShouldNotBeFound("instructions.specified=false");
+    }
+                @Test
+    @Transactional
+    public void getAllRecipesByInstructionsContainsSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where instructions contains DEFAULT_INSTRUCTIONS
+        defaultRecipeShouldBeFound("instructions.contains=" + DEFAULT_INSTRUCTIONS);
+
+        // Get all the recipeList where instructions contains UPDATED_INSTRUCTIONS
+        defaultRecipeShouldNotBeFound("instructions.contains=" + UPDATED_INSTRUCTIONS);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByInstructionsNotContainsSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where instructions does not contain DEFAULT_INSTRUCTIONS
+        defaultRecipeShouldNotBeFound("instructions.doesNotContain=" + DEFAULT_INSTRUCTIONS);
+
+        // Get all the recipeList where instructions does not contain UPDATED_INSTRUCTIONS
+        defaultRecipeShouldBeFound("instructions.doesNotContain=" + UPDATED_INSTRUCTIONS);
+    }
+
     /**
      * Executes the search, and checks that the default entity is returned.
      */
@@ -301,7 +502,9 @@ public class RecipeResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(recipe.getId().intValue())))
-            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)));
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
+            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())))
+            .andExpect(jsonPath("$.[*].instructions").value(hasItem(DEFAULT_INSTRUCTIONS)));
 
         // Check, that the count call also returns 1
         restRecipeMockMvc.perform(get("/api/recipes/count?sort=id,desc&" + filter))
@@ -348,7 +551,9 @@ public class RecipeResourceIT {
         // Disconnect from session so that the updates on updatedRecipe are not directly saved in db
         em.detach(updatedRecipe);
         updatedRecipe
-            .name(UPDATED_NAME);
+            .name(UPDATED_NAME)
+            .duration(UPDATED_DURATION)
+            .instructions(UPDATED_INSTRUCTIONS);
         RecipeDTO recipeDTO = recipeMapper.toDto(updatedRecipe);
 
         restRecipeMockMvc.perform(put("/api/recipes")
@@ -361,6 +566,8 @@ public class RecipeResourceIT {
         assertThat(recipeList).hasSize(databaseSizeBeforeUpdate);
         Recipe testRecipe = recipeList.get(recipeList.size() - 1);
         assertThat(testRecipe.getName()).isEqualTo(UPDATED_NAME);
+        assertThat(testRecipe.getDuration()).isEqualTo(UPDATED_DURATION);
+        assertThat(testRecipe.getInstructions()).isEqualTo(UPDATED_INSTRUCTIONS);
 
         // Validate the Recipe in Elasticsearch
         verify(mockRecipeSearchRepository, times(1)).save(testRecipe);
@@ -423,6 +630,8 @@ public class RecipeResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(recipe.getId().intValue())))
-            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)));
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
+            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())))
+            .andExpect(jsonPath("$.[*].instructions").value(hasItem(DEFAULT_INSTRUCTIONS)));
     }
 }

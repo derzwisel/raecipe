@@ -98,6 +98,12 @@ public class RecipeQueryService extends QueryService<Recipe> {
             if (criteria.getName() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getName(), Recipe_.name));
             }
+            if (criteria.getDuration() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getDuration(), Recipe_.duration));
+            }
+            if (criteria.getInstructions() != null) {
+                specification = specification.and(buildStringSpecification(criteria.getInstructions(), Recipe_.instructions));
+            }
         }
         return specification;
     }

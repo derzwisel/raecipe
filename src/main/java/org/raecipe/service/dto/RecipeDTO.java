@@ -1,5 +1,6 @@
 package org.raecipe.service.dto;
 
+import java.time.Duration;
 import javax.validation.constraints.*;
 import java.io.Serializable;
 
@@ -12,6 +13,10 @@ public class RecipeDTO implements Serializable {
 
     @NotNull
     private String name;
+
+    private Duration duration;
+
+    private String instructions;
 
     
     public Long getId() {
@@ -28,6 +33,22 @@ public class RecipeDTO implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public String getInstructions() {
+        return instructions;
+    }
+
+    public void setInstructions(String instructions) {
+        this.instructions = instructions;
     }
 
     @Override
@@ -53,6 +74,8 @@ public class RecipeDTO implements Serializable {
         return "RecipeDTO{" +
             "id=" + getId() +
             ", name='" + getName() + "'" +
+            ", duration='" + getDuration() + "'" +
+            ", instructions='" + getInstructions() + "'" +
             "}";
     }
 }

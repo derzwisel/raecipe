@@ -18,6 +18,8 @@ export class RecipeUpdateComponent implements OnInit {
   editForm = this.fb.group({
     id: [],
     name: [null, [Validators.required]],
+    duration: [],
+    instructions: [],
   });
 
   constructor(protected recipeService: RecipeService, protected activatedRoute: ActivatedRoute, private fb: FormBuilder) {}
@@ -32,6 +34,8 @@ export class RecipeUpdateComponent implements OnInit {
     this.editForm.patchValue({
       id: recipe.id,
       name: recipe.name,
+      duration: recipe.duration,
+      instructions: recipe.instructions,
     });
   }
 
@@ -54,6 +58,8 @@ export class RecipeUpdateComponent implements OnInit {
       ...new Recipe(),
       id: this.editForm.get(['id'])!.value,
       name: this.editForm.get(['name'])!.value,
+      duration: this.editForm.get(['duration'])!.value,
+      instructions: this.editForm.get(['instructions'])!.value,
     };
   }
 

@@ -20,7 +20,7 @@ describe('Service Tests', () => {
       service = injector.get(RecipeService);
       httpMock = injector.get(HttpTestingController);
 
-      elemDefault = new Recipe(0, 'AAAAAAA');
+      elemDefault = new Recipe(0, 'AAAAAAA', 0, 'AAAAAAA');
     });
 
     describe('Service methods', () => {
@@ -55,6 +55,8 @@ describe('Service Tests', () => {
         const returnedFromService = Object.assign(
           {
             name: 'BBBBBB',
+            duration: 'BBBBBB',
+            instructions: 'BBBBBB',
           },
           elemDefault
         );
@@ -72,6 +74,8 @@ describe('Service Tests', () => {
         const returnedFromService = Object.assign(
           {
             name: 'BBBBBB',
+            duration: 'BBBBBB',
+            instructions: 'BBBBBB',
           },
           elemDefault
         );
