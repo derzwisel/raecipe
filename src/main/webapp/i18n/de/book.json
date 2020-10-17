@@ -1,0 +1,25 @@
+{
+  "raecipeApp": {
+    "book": {
+      "home": {
+        "title": "Books",
+        "createLabel": "Book erstellen",
+        "createOrEditLabel": "Book erstellen oder bearbeiten",
+        "search": "Suche nach Book",
+        "notFound": "No Books found"
+      },
+      "created": "Book erstellt mit ID {{ param }}",
+      "updated": "Book aktualisiert mit ID {{ param }}",
+      "deleted": "Book gelöscht mit ID {{ param }}",
+      "delete": {
+        "question": "Soll Book {{ id }} wirklich dauerhaft gelöscht werden?"
+      },
+      "detail": {
+        "title": "Book"
+      },
+      "name": "Name",
+      "published": "Published",
+      "recipe": "Recipe"
+    }
+  }
+}
