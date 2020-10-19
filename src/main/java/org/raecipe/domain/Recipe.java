@@ -29,6 +29,15 @@ public class Recipe implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "starred")
+    private Boolean starred;
+
+    @Column(name = "tags")
+    private String tags;
+
+    @Column(name = "ingredients")
+    private String ingredients;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
     public Long getId() {
         return id;
@@ -49,6 +58,45 @@ public class Recipe implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Boolean isStarred() {
+        return starred;
+    }
+
+    public Recipe starred(Boolean starred) {
+        this.starred = starred;
+        return this;
+    }
+
+    public void setStarred(Boolean starred) {
+        this.starred = starred;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public Recipe tags(String tags) {
+        this.tags = tags;
+        return this;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
+    public String getIngredients() {
+        return ingredients;
+    }
+
+    public Recipe ingredients(String ingredients) {
+        this.ingredients = ingredients;
+        return this;
+    }
+
+    public void setIngredients(String ingredients) {
+        this.ingredients = ingredients;
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
@@ -74,6 +122,9 @@ public class Recipe implements Serializable {
         return "Recipe{" +
             "id=" + getId() +
             ", name='" + getName() + "'" +
+            ", starred='" + isStarred() + "'" +
+            ", tags='" + getTags() + "'" +
+            ", ingredients='" + getIngredients() + "'" +
             "}";
     }
 }

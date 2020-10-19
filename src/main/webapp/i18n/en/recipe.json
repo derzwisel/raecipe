@@ -17,7 +17,10 @@
       "detail": {
         "title": "Recipe"
       },
-      "name": "Name"
+      "name": "Name",
+      "starred": "Starred",
+      "tags": "Tags",
+      "ingredients": "Ingredients"
     }
   }
 }

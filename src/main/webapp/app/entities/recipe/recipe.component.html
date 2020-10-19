@@ -42,6 +42,9 @@
                 <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" [callback]="reset.bind(this)">
                     <th scope="col"  jhiSortBy="id"><span jhiTranslate="global.field.id">ID</span> <fa-icon icon="sort"></fa-icon></th>
                     <th scope="col"  jhiSortBy="name"><span jhiTranslate="raecipeApp.recipe.name">Name</span> <fa-icon icon="sort"></fa-icon></th>
+                    <th scope="col"  jhiSortBy="starred"><span jhiTranslate="raecipeApp.recipe.starred">Starred</span> <fa-icon icon="sort"></fa-icon></th>
+                    <th scope="col"  jhiSortBy="tags"><span jhiTranslate="raecipeApp.recipe.tags">Tags</span> <fa-icon icon="sort"></fa-icon></th>
+                    <th scope="col"  jhiSortBy="ingredients"><span jhiTranslate="raecipeApp.recipe.ingredients">Ingredients</span> <fa-icon icon="sort"></fa-icon></th>
                     <th scope="col"></th>
                 </tr>
             </thead>
@@ -49,6 +52,9 @@
                 <tr *ngFor="let recipe of recipes ;trackBy: trackId">
                     <td><a [routerLink]="['/recipe', recipe.id, 'view']">{{ recipe.id }}</a></td>
                     <td>{{ recipe.name }}</td>
+                    <td>{{ recipe.starred }}</td>
+                    <td>{{ recipe.tags }}</td>
+                    <td>{{ recipe.ingredients }}</td>
                     <td class="text-right">
                         <div class="btn-group">
                             <button type="submit"

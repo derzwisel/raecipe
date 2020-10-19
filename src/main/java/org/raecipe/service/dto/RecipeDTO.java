@@ -13,6 +13,12 @@ public class RecipeDTO implements Serializable {
     @NotNull
     private String name;
 
+    private Boolean starred;
+
+    private String tags;
+
+    private String ingredients;
+
     
     public Long getId() {
         return id;
@@ -28,6 +34,30 @@ public class RecipeDTO implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Boolean isStarred() {
+        return starred;
+    }
+
+    public void setStarred(Boolean starred) {
+        this.starred = starred;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
+    public String getIngredients() {
+        return ingredients;
+    }
+
+    public void setIngredients(String ingredients) {
+        this.ingredients = ingredients;
     }
 
     @Override
@@ -53,6 +83,9 @@ public class RecipeDTO implements Serializable {
         return "RecipeDTO{" +
             "id=" + getId() +
             ", name='" + getName() + "'" +
+            ", starred='" + isStarred() + "'" +
+            ", tags='" + getTags() + "'" +
+            ", ingredients='" + getIngredients() + "'" +
             "}";
     }
 }
