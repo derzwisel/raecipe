@@ -28,12 +28,21 @@ public class RecipeCriteria implements Serializable, Criteria {
 
     private StringFilter name;
 
+    private BooleanFilter starred;
+
+    private StringFilter tags;
+
+    private StringFilter ingredients;
+
     public RecipeCriteria() {
     }
 
     public RecipeCriteria(RecipeCriteria other) {
         this.id = other.id == null ? null : other.id.copy();
         this.name = other.name == null ? null : other.name.copy();
+        this.starred = other.starred == null ? null : other.starred.copy();
+        this.tags = other.tags == null ? null : other.tags.copy();
+        this.ingredients = other.ingredients == null ? null : other.ingredients.copy();
     }
 
     @Override
@@ -57,6 +66,30 @@ public class RecipeCriteria implements Serializable, Criteria {
         this.name = name;
     }
 
+    public BooleanFilter getStarred() {
+        return starred;
+    }
+
+    public void setStarred(BooleanFilter starred) {
+        this.starred = starred;
+    }
+
+    public StringFilter getTags() {
+        return tags;
+    }
+
+    public void setTags(StringFilter tags) {
+        this.tags = tags;
+    }
+
+    public StringFilter getIngredients() {
+        return ingredients;
+    }
+
+    public void setIngredients(StringFilter ingredients) {
+        this.ingredients = ingredients;
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -69,14 +102,20 @@ public class RecipeCriteria implements Serializable, Criteria {
         final RecipeCriteria that = (RecipeCriteria) o;
         return
             Objects.equals(id, that.id) &&
-            Objects.equals(name, that.name);
+            Objects.equals(name, that.name) &&
+            Objects.equals(starred, that.starred) &&
+            Objects.equals(tags, that.tags) &&
+            Objects.equals(ingredients, that.ingredients);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
         id,
-        name
+        name,
+        starred,
+        tags,
+        ingredients
         );
     }
 
@@ -86,6 +125,9 @@ public class RecipeCriteria implements Serializable, Criteria {
         return "RecipeCriteria{" +
                 (id != null ? "id=" + id + ", " : "") +
                 (name != null ? "name=" + name + ", " : "") +
+                (starred != null ? "starred=" + starred + ", " : "") +
+                (tags != null ? "tags=" + tags + ", " : "") +
+                (ingredients != null ? "ingredients=" + ingredients + ", " : "") +
             "}";
     }
 

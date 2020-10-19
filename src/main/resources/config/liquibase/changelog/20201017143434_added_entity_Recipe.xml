@@ -18,6 +18,15 @@
             <column name="name" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
+            <column name="starred" type="boolean">
+                <constraints nullable="true" />
+            </column>
+            <column name="tags" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="ingredients" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
     </changeSet>
@@ -42,6 +51,9 @@
                   tableName="recipe">
             <column name="id" type="numeric"/>
             <column name="name" type="string"/>
+            <column name="starred" type="boolean"/>
+            <column name="tags" type="string"/>
+            <column name="ingredients" type="string"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>
     </changeSet>

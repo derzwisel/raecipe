@@ -7,6 +7,18 @@
       "fieldName": "name",
       "fieldType": "String",
       "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "starred",
+      "fieldType": "Boolean"
+    },
+    {
+      "fieldName": "tags",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "ingredients",
+      "fieldType": "String"
     }
   ],
   "changelogDate": "20201017143434",
