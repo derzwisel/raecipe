@@ -19,6 +19,10 @@
     {
       "fieldName": "ingredients",
       "fieldType": "String"
+    },
+    {
+      "fieldName": "steps",
+      "fieldType": "String"
     }
   ],
   "changelogDate": "20201017143434",

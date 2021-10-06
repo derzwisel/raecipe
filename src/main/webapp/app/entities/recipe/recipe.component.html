@@ -45,6 +45,7 @@
                     <th scope="col"  jhiSortBy="starred"><span jhiTranslate="raecipeApp.recipe.starred">Starred</span> <fa-icon icon="sort"></fa-icon></th>
                     <th scope="col"  jhiSortBy="tags"><span jhiTranslate="raecipeApp.recipe.tags">Tags</span> <fa-icon icon="sort"></fa-icon></th>
                     <th scope="col"  jhiSortBy="ingredients"><span jhiTranslate="raecipeApp.recipe.ingredients">Ingredients</span> <fa-icon icon="sort"></fa-icon></th>
+                    <th scope="col"  jhiSortBy="steps"><span jhiTranslate="raecipeApp.recipe.steps">Steps</span> <fa-icon icon="sort"></fa-icon></th>
                     <th scope="col"></th>
                 </tr>
             </thead>
@@ -55,6 +56,7 @@
                     <td>{{ recipe.starred }}</td>
                     <td>{{ recipe.tags }}</td>
                     <td>{{ recipe.ingredients }}</td>
+                    <td>{{ recipe.steps }}</td>
                     <td class="text-right">
                         <div class="btn-group">
                             <button type="submit"
