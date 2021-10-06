@@ -5,6 +5,7 @@ export interface IRecipe {
   tags?: string;
   ingredients?: string;
   steps?: string;
+  comment?: string;
 }
 
 export class Recipe implements IRecipe {
@@ -14,7 +15,8 @@ export class Recipe implements IRecipe {
     public starred?: boolean,
     public tags?: string,
     public ingredients?: string,
-    public steps?: string
+    public steps?: string,
+    public comment?: string
   ) {
     this.starred = this.starred || false;
   }

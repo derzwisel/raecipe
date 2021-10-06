@@ -21,7 +21,8 @@
       "starred": "Starred",
       "tags": "Tags",
       "ingredients": "Ingredients",
-      "steps": "Steps"
+      "steps": "Steps",
+      "comment": "Comment"
     }
   }
 }

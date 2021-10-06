@@ -23,6 +23,10 @@
     {
       "fieldName": "steps",
       "fieldType": "String"
+    },
+    {
+      "fieldName": "comment",
+      "fieldType": "String"
     }
   ],
   "changelogDate": "20201017143434",

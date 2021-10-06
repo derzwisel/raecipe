@@ -59,6 +59,9 @@ public class RecipeResourceIT {
     private static final String DEFAULT_STEPS = "AAAAAAAAAA";
     private static final String UPDATED_STEPS = "BBBBBBBBBB";
 
+    private static final String DEFAULT_COMMENT = "AAAAAAAAAA";
+    private static final String UPDATED_COMMENT = "BBBBBBBBBB";
+
     @Autowired
     private RecipeRepository recipeRepository;
 
@@ -99,7 +102,8 @@ public class RecipeResourceIT {
             .starred(DEFAULT_STARRED)
             .tags(DEFAULT_TAGS)
             .ingredients(DEFAULT_INGREDIENTS)
-            .steps(DEFAULT_STEPS);
+            .steps(DEFAULT_STEPS)
+            .comment(DEFAULT_COMMENT);
         return recipe;
     }
     /**
@@ -114,7 +118,8 @@ public class RecipeResourceIT {
             .starred(UPDATED_STARRED)
             .tags(UPDATED_TAGS)
             .ingredients(UPDATED_INGREDIENTS)
-            .steps(UPDATED_STEPS);
+            .steps(UPDATED_STEPS)
+            .comment(UPDATED_COMMENT);
         return recipe;
     }
 
@@ -143,6 +148,7 @@ public class RecipeResourceIT {
         assertThat(testRecipe.getTags()).isEqualTo(DEFAULT_TAGS);
         assertThat(testRecipe.getIngredients()).isEqualTo(DEFAULT_INGREDIENTS);
         assertThat(testRecipe.getSteps()).isEqualTo(DEFAULT_STEPS);
+        assertThat(testRecipe.getComment()).isEqualTo(DEFAULT_COMMENT);
 
         // Validate the Recipe in Elasticsearch
         verify(mockRecipeSearchRepository, times(1)).save(testRecipe);
@@ -207,7 +213,8 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.[*].starred").value(hasItem(DEFAULT_STARRED.booleanValue())))
             .andExpect(jsonPath("$.[*].tags").value(hasItem(DEFAULT_TAGS)))
             .andExpect(jsonPath("$.[*].ingredients").value(hasItem(DEFAULT_INGREDIENTS)))
-            .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)));
+            .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)))
+            .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)));
     }
     
     @Test
@@ -225,7 +232,8 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.starred").value(DEFAULT_STARRED.booleanValue()))
             .andExpect(jsonPath("$.tags").value(DEFAULT_TAGS))
             .andExpect(jsonPath("$.ingredients").value(DEFAULT_INGREDIENTS))
-            .andExpect(jsonPath("$.steps").value(DEFAULT_STEPS));
+            .andExpect(jsonPath("$.steps").value(DEFAULT_STEPS))
+            .andExpect(jsonPath("$.comment").value(DEFAULT_COMMENT));
     }
 
 
@@ -611,6 +619,84 @@ public class RecipeResourceIT {
         defaultRecipeShouldBeFound("steps.doesNotContain=" + UPDATED_STEPS);
     }
 
+
+    @Test
+    @Transactional
+    public void getAllRecipesByCommentIsEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where comment equals to DEFAULT_COMMENT
+        defaultRecipeShouldBeFound("comment.equals=" + DEFAULT_COMMENT);
+
+        // Get all the recipeList where comment equals to UPDATED_COMMENT
+        defaultRecipeShouldNotBeFound("comment.equals=" + UPDATED_COMMENT);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByCommentIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where comment not equals to DEFAULT_COMMENT
+        defaultRecipeShouldNotBeFound("comment.notEquals=" + DEFAULT_COMMENT);
+
+        // Get all the recipeList where comment not equals to UPDATED_COMMENT
+        defaultRecipeShouldBeFound("comment.notEquals=" + UPDATED_COMMENT);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByCommentIsInShouldWork() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where comment in DEFAULT_COMMENT or UPDATED_COMMENT
+        defaultRecipeShouldBeFound("comment.in=" + DEFAULT_COMMENT + "," + UPDATED_COMMENT);
+
+        // Get all the recipeList where comment equals to UPDATED_COMMENT
+        defaultRecipeShouldNotBeFound("comment.in=" + UPDATED_COMMENT);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByCommentIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where comment is not null
+        defaultRecipeShouldBeFound("comment.specified=true");
+
+        // Get all the recipeList where comment is null
+        defaultRecipeShouldNotBeFound("comment.specified=false");
+    }
+                @Test
+    @Transactional
+    public void getAllRecipesByCommentContainsSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where comment contains DEFAULT_COMMENT
+        defaultRecipeShouldBeFound("comment.contains=" + DEFAULT_COMMENT);
+
+        // Get all the recipeList where comment contains UPDATED_COMMENT
+        defaultRecipeShouldNotBeFound("comment.contains=" + UPDATED_COMMENT);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByCommentNotContainsSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where comment does not contain DEFAULT_COMMENT
+        defaultRecipeShouldNotBeFound("comment.doesNotContain=" + DEFAULT_COMMENT);
+
+        // Get all the recipeList where comment does not contain UPDATED_COMMENT
+        defaultRecipeShouldBeFound("comment.doesNotContain=" + UPDATED_COMMENT);
+    }
+
     /**
      * Executes the search, and checks that the default entity is returned.
      */
@@ -623,7 +709,8 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.[*].starred").value(hasItem(DEFAULT_STARRED.booleanValue())))
             .andExpect(jsonPath("$.[*].tags").value(hasItem(DEFAULT_TAGS)))
             .andExpect(jsonPath("$.[*].ingredients").value(hasItem(DEFAULT_INGREDIENTS)))
-            .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)));
+            .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)))
+            .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)));
 
         // Check, that the count call also returns 1
         restRecipeMockMvc.perform(get("/api/recipes/count?sort=id,desc&" + filter))
@@ -674,7 +761,8 @@ public class RecipeResourceIT {
             .starred(UPDATED_STARRED)
             .tags(UPDATED_TAGS)
             .ingredients(UPDATED_INGREDIENTS)
-            .steps(UPDATED_STEPS);
+            .steps(UPDATED_STEPS)
+            .comment(UPDATED_COMMENT);
         RecipeDTO recipeDTO = recipeMapper.toDto(updatedRecipe);
 
         restRecipeMockMvc.perform(put("/api/recipes")
@@ -691,6 +779,7 @@ public class RecipeResourceIT {
         assertThat(testRecipe.getTags()).isEqualTo(UPDATED_TAGS);
         assertThat(testRecipe.getIngredients()).isEqualTo(UPDATED_INGREDIENTS);
         assertThat(testRecipe.getSteps()).isEqualTo(UPDATED_STEPS);
+        assertThat(testRecipe.getComment()).isEqualTo(UPDATED_COMMENT);
 
         // Validate the Recipe in Elasticsearch
         verify(mockRecipeSearchRepository, times(1)).save(testRecipe);
@@ -757,6 +846,7 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.[*].starred").value(hasItem(DEFAULT_STARRED.booleanValue())))
             .andExpect(jsonPath("$.[*].tags").value(hasItem(DEFAULT_TAGS)))
             .andExpect(jsonPath("$.[*].ingredients").value(hasItem(DEFAULT_INGREDIENTS)))
-            .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)));
+            .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)))
+            .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)));
     }
 }
