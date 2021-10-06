@@ -1,5 +1,6 @@
 package org.raecipe.service.dto;
 
+import java.time.Duration;
 import javax.validation.constraints.*;
 import java.io.Serializable;
 
@@ -22,6 +23,8 @@ public class RecipeDTO implements Serializable {
     private String steps;
 
     private String comment;
+
+    private Duration duration;
 
     
     public Long getId() {
@@ -80,6 +83,14 @@ public class RecipeDTO implements Serializable {
         this.comment = comment;
     }
 
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -108,6 +119,7 @@ public class RecipeDTO implements Serializable {
             ", ingredients='" + getIngredients() + "'" +
             ", steps='" + getSteps() + "'" +
             ", comment='" + getComment() + "'" +
+            ", duration='" + getDuration() + "'" +
             "}";
     }
 }

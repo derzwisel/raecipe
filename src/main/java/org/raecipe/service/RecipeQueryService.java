@@ -113,6 +113,9 @@ public class RecipeQueryService extends QueryService<Recipe> {
             if (criteria.getComment() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getComment(), Recipe_.comment));
             }
+            if (criteria.getDuration() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getDuration(), Recipe_.duration));
+            }
         }
         return specification;
     }
