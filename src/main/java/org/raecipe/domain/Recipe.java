@@ -38,6 +38,9 @@ public class Recipe implements Serializable {
     @Column(name = "ingredients")
     private String ingredients;
 
+    @Column(name = "steps")
+    private String steps;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
     public Long getId() {
         return id;
@@ -98,6 +101,19 @@ public class Recipe implements Serializable {
     public void setIngredients(String ingredients) {
         this.ingredients = ingredients;
     }
+
+    public String getSteps() {
+        return steps;
+    }
+
+    public Recipe steps(String steps) {
+        this.steps = steps;
+        return this;
+    }
+
+    public void setSteps(String steps) {
+        this.steps = steps;
+    }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -125,6 +141,7 @@ public class Recipe implements Serializable {
             ", starred='" + isStarred() + "'" +
             ", tags='" + getTags() + "'" +
             ", ingredients='" + getIngredients() + "'" +
+            ", steps='" + getSteps() + "'" +
             "}";
     }
 }

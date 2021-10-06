@@ -19,6 +19,8 @@ public class RecipeDTO implements Serializable {
 
     private String ingredients;
 
+    private String steps;
+
     
     public Long getId() {
         return id;
@@ -60,6 +62,14 @@ public class RecipeDTO implements Serializable {
         this.ingredients = ingredients;
     }
 
+    public String getSteps() {
+        return steps;
+    }
+
+    public void setSteps(String steps) {
+        this.steps = steps;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -86,6 +96,7 @@ public class RecipeDTO implements Serializable {
             ", starred='" + isStarred() + "'" +
             ", tags='" + getTags() + "'" +
             ", ingredients='" + getIngredients() + "'" +
+            ", steps='" + getSteps() + "'" +
             "}";
     }
 }
