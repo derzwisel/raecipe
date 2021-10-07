@@ -22,7 +22,8 @@
       "tags": "Tags",
       "ingredients": "Ingredients",
       "steps": "Steps",
-      "comment": "Comment"
+      "comment": "Comment",
+      "duration": "Duration"
     }
   }
 }

@@ -10,6 +10,7 @@ import io.github.jhipster.service.filter.FloatFilter;
 import io.github.jhipster.service.filter.IntegerFilter;
 import io.github.jhipster.service.filter.LongFilter;
 import io.github.jhipster.service.filter.StringFilter;
+import io.github.jhipster.service.filter.DurationFilter;
 
 /**
  * Criteria class for the {@link org.raecipe.domain.Recipe} entity. This class is used
@@ -38,6 +39,8 @@ public class RecipeCriteria implements Serializable, Criteria {
 
     private StringFilter comment;
 
+    private DurationFilter duration;
+
     public RecipeCriteria() {
     }
 
@@ -49,6 +52,7 @@ public class RecipeCriteria implements Serializable, Criteria {
         this.ingredients = other.ingredients == null ? null : other.ingredients.copy();
         this.steps = other.steps == null ? null : other.steps.copy();
         this.comment = other.comment == null ? null : other.comment.copy();
+        this.duration = other.duration == null ? null : other.duration.copy();
     }
 
     @Override
@@ -112,6 +116,14 @@ public class RecipeCriteria implements Serializable, Criteria {
         this.comment = comment;
     }
 
+    public DurationFilter getDuration() {
+        return duration;
+    }
+
+    public void setDuration(DurationFilter duration) {
+        this.duration = duration;
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -129,7 +141,8 @@ public class RecipeCriteria implements Serializable, Criteria {
             Objects.equals(tags, that.tags) &&
             Objects.equals(ingredients, that.ingredients) &&
             Objects.equals(steps, that.steps) &&
-            Objects.equals(comment, that.comment);
+            Objects.equals(comment, that.comment) &&
+            Objects.equals(duration, that.duration);
     }
 
     @Override
@@ -141,7 +154,8 @@ public class RecipeCriteria implements Serializable, Criteria {
         tags,
         ingredients,
         steps,
-        comment
+        comment,
+        duration
         );
     }
 
@@ -156,6 +170,7 @@ public class RecipeCriteria implements Serializable, Criteria {
                 (ingredients != null ? "ingredients=" + ingredients + ", " : "") +
                 (steps != null ? "steps=" + steps + ", " : "") +
                 (comment != null ? "comment=" + comment + ", " : "") +
+                (duration != null ? "duration=" + duration + ", " : "") +
             "}";
     }
 

@@ -25,6 +25,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
@@ -61,6 +62,10 @@ public class RecipeResourceIT {
 
     private static final String DEFAULT_COMMENT = "AAAAAAAAAA";
     private static final String UPDATED_COMMENT = "BBBBBBBBBB";
+
+    private static final Duration DEFAULT_DURATION = Duration.ofHours(6);
+    private static final Duration UPDATED_DURATION = Duration.ofHours(12);
+    private static final Duration SMALLER_DURATION = Duration.ofHours(5);
 
     @Autowired
     private RecipeRepository recipeRepository;
@@ -103,7 +108,8 @@ public class RecipeResourceIT {
             .tags(DEFAULT_TAGS)
             .ingredients(DEFAULT_INGREDIENTS)
             .steps(DEFAULT_STEPS)
-            .comment(DEFAULT_COMMENT);
+            .comment(DEFAULT_COMMENT)
+            .duration(DEFAULT_DURATION);
         return recipe;
     }
     /**
@@ -119,7 +125,8 @@ public class RecipeResourceIT {
             .tags(UPDATED_TAGS)
             .ingredients(UPDATED_INGREDIENTS)
             .steps(UPDATED_STEPS)
-            .comment(UPDATED_COMMENT);
+            .comment(UPDATED_COMMENT)
+            .duration(UPDATED_DURATION);
         return recipe;
     }
 
@@ -149,6 +156,7 @@ public class RecipeResourceIT {
         assertThat(testRecipe.getIngredients()).isEqualTo(DEFAULT_INGREDIENTS);
         assertThat(testRecipe.getSteps()).isEqualTo(DEFAULT_STEPS);
         assertThat(testRecipe.getComment()).isEqualTo(DEFAULT_COMMENT);
+        assertThat(testRecipe.getDuration()).isEqualTo(DEFAULT_DURATION);
 
         // Validate the Recipe in Elasticsearch
         verify(mockRecipeSearchRepository, times(1)).save(testRecipe);
@@ -214,7 +222,8 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.[*].tags").value(hasItem(DEFAULT_TAGS)))
             .andExpect(jsonPath("$.[*].ingredients").value(hasItem(DEFAULT_INGREDIENTS)))
             .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)))
-            .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)));
+            .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)))
+            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())));
     }
     
     @Test
@@ -233,7 +242,8 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.tags").value(DEFAULT_TAGS))
             .andExpect(jsonPath("$.ingredients").value(DEFAULT_INGREDIENTS))
             .andExpect(jsonPath("$.steps").value(DEFAULT_STEPS))
-            .andExpect(jsonPath("$.comment").value(DEFAULT_COMMENT));
+            .andExpect(jsonPath("$.comment").value(DEFAULT_COMMENT))
+            .andExpect(jsonPath("$.duration").value(DEFAULT_DURATION.toString()));
     }
 
 
@@ -697,6 +707,111 @@ public class RecipeResourceIT {
         defaultRecipeShouldBeFound("comment.doesNotContain=" + UPDATED_COMMENT);
     }
 
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration equals to DEFAULT_DURATION
+        defaultRecipeShouldBeFound("duration.equals=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration equals to UPDATED_DURATION
+        defaultRecipeShouldNotBeFound("duration.equals=" + UPDATED_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration not equals to DEFAULT_DURATION
+        defaultRecipeShouldNotBeFound("duration.notEquals=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration not equals to UPDATED_DURATION
+        defaultRecipeShouldBeFound("duration.notEquals=" + UPDATED_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsInShouldWork() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration in DEFAULT_DURATION or UPDATED_DURATION
+        defaultRecipeShouldBeFound("duration.in=" + DEFAULT_DURATION + "," + UPDATED_DURATION);
+
+        // Get all the recipeList where duration equals to UPDATED_DURATION
+        defaultRecipeShouldNotBeFound("duration.in=" + UPDATED_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration is not null
+        defaultRecipeShouldBeFound("duration.specified=true");
+
+        // Get all the recipeList where duration is null
+        defaultRecipeShouldNotBeFound("duration.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsGreaterThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration is greater than or equal to DEFAULT_DURATION
+        defaultRecipeShouldBeFound("duration.greaterThanOrEqual=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration is greater than or equal to UPDATED_DURATION
+        defaultRecipeShouldNotBeFound("duration.greaterThanOrEqual=" + UPDATED_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsLessThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration is less than or equal to DEFAULT_DURATION
+        defaultRecipeShouldBeFound("duration.lessThanOrEqual=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration is less than or equal to SMALLER_DURATION
+        defaultRecipeShouldNotBeFound("duration.lessThanOrEqual=" + SMALLER_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsLessThanSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration is less than DEFAULT_DURATION
+        defaultRecipeShouldNotBeFound("duration.lessThan=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration is less than UPDATED_DURATION
+        defaultRecipeShouldBeFound("duration.lessThan=" + UPDATED_DURATION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByDurationIsGreaterThanSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where duration is greater than DEFAULT_DURATION
+        defaultRecipeShouldNotBeFound("duration.greaterThan=" + DEFAULT_DURATION);
+
+        // Get all the recipeList where duration is greater than SMALLER_DURATION
+        defaultRecipeShouldBeFound("duration.greaterThan=" + SMALLER_DURATION);
+    }
+
     /**
      * Executes the search, and checks that the default entity is returned.
      */
@@ -710,7 +825,8 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.[*].tags").value(hasItem(DEFAULT_TAGS)))
             .andExpect(jsonPath("$.[*].ingredients").value(hasItem(DEFAULT_INGREDIENTS)))
             .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)))
-            .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)));
+            .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)))
+            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())));
 
         // Check, that the count call also returns 1
         restRecipeMockMvc.perform(get("/api/recipes/count?sort=id,desc&" + filter))
@@ -762,7 +878,8 @@ public class RecipeResourceIT {
             .tags(UPDATED_TAGS)
             .ingredients(UPDATED_INGREDIENTS)
             .steps(UPDATED_STEPS)
-            .comment(UPDATED_COMMENT);
+            .comment(UPDATED_COMMENT)
+            .duration(UPDATED_DURATION);
         RecipeDTO recipeDTO = recipeMapper.toDto(updatedRecipe);
 
         restRecipeMockMvc.perform(put("/api/recipes")
@@ -780,6 +897,7 @@ public class RecipeResourceIT {
         assertThat(testRecipe.getIngredients()).isEqualTo(UPDATED_INGREDIENTS);
         assertThat(testRecipe.getSteps()).isEqualTo(UPDATED_STEPS);
         assertThat(testRecipe.getComment()).isEqualTo(UPDATED_COMMENT);
+        assertThat(testRecipe.getDuration()).isEqualTo(UPDATED_DURATION);
 
         // Validate the Recipe in Elasticsearch
         verify(mockRecipeSearchRepository, times(1)).save(testRecipe);
@@ -847,6 +965,7 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.[*].tags").value(hasItem(DEFAULT_TAGS)))
             .andExpect(jsonPath("$.[*].ingredients").value(hasItem(DEFAULT_INGREDIENTS)))
             .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)))
-            .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)));
+            .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)))
+            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())));
     }
 }

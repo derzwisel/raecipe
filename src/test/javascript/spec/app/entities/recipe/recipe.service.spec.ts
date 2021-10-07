@@ -20,7 +20,7 @@ describe('Service Tests', () => {
       service = injector.get(RecipeService);
       httpMock = injector.get(HttpTestingController);
 
-      elemDefault = new Recipe(0, 'AAAAAAA', false, 'AAAAAAA', 'AAAAAAA', 'AAAAAAA', 'AAAAAAA');
+      elemDefault = new Recipe(0, 'AAAAAAA', false, 'AAAAAAA', 'AAAAAAA', 'AAAAAAA', 'AAAAAAA', 0);
     });
 
     describe('Service methods', () => {
@@ -60,6 +60,7 @@ describe('Service Tests', () => {
             ingredients: 'BBBBBB',
             steps: 'BBBBBB',
             comment: 'BBBBBB',
+            duration: 'BBBBBB',
           },
           elemDefault
         );
@@ -82,6 +83,7 @@ describe('Service Tests', () => {
             ingredients: 'BBBBBB',
             steps: 'BBBBBB',
             comment: 'BBBBBB',
+            duration: 'BBBBBB',
           },
           elemDefault
         );
