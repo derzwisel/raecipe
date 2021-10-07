@@ -116,6 +116,9 @@ public class RecipeQueryService extends QueryService<Recipe> {
             if (criteria.getDuration() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getDuration(), Recipe_.duration));
             }
+            if (criteria.getPictures() != null) {
+                specification = specification.and(buildStringSpecification(criteria.getPictures(), Recipe_.pictures));
+            }
         }
         return specification;
     }
