@@ -41,6 +41,8 @@ public class RecipeCriteria implements Serializable, Criteria {
 
     private DurationFilter duration;
 
+    private StringFilter pictures;
+
     public RecipeCriteria() {
     }
 
@@ -53,6 +55,7 @@ public class RecipeCriteria implements Serializable, Criteria {
         this.steps = other.steps == null ? null : other.steps.copy();
         this.comment = other.comment == null ? null : other.comment.copy();
         this.duration = other.duration == null ? null : other.duration.copy();
+        this.pictures = other.pictures == null ? null : other.pictures.copy();
     }
 
     @Override
@@ -124,6 +127,14 @@ public class RecipeCriteria implements Serializable, Criteria {
         this.duration = duration;
     }
 
+    public StringFilter getPictures() {
+        return pictures;
+    }
+
+    public void setPictures(StringFilter pictures) {
+        this.pictures = pictures;
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -142,7 +153,8 @@ public class RecipeCriteria implements Serializable, Criteria {
             Objects.equals(ingredients, that.ingredients) &&
             Objects.equals(steps, that.steps) &&
             Objects.equals(comment, that.comment) &&
-            Objects.equals(duration, that.duration);
+            Objects.equals(duration, that.duration) &&
+            Objects.equals(pictures, that.pictures);
     }
 
     @Override
@@ -155,7 +167,8 @@ public class RecipeCriteria implements Serializable, Criteria {
         ingredients,
         steps,
         comment,
-        duration
+        duration,
+        pictures
         );
     }
 
@@ -171,6 +184,7 @@ public class RecipeCriteria implements Serializable, Criteria {
                 (steps != null ? "steps=" + steps + ", " : "") +
                 (comment != null ? "comment=" + comment + ", " : "") +
                 (duration != null ? "duration=" + duration + ", " : "") +
+                (pictures != null ? "pictures=" + pictures + ", " : "") +
             "}";
     }
 

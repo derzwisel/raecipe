@@ -31,6 +31,10 @@
     {
       "fieldName": "duration",
       "fieldType": "Duration"
+    },
+    {
+      "fieldName": "pictures",
+      "fieldType": "String"
     }
   ],
   "changelogDate": "20201017143434",

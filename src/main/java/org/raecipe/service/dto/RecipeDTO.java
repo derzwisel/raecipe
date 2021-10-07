@@ -26,6 +26,8 @@ public class RecipeDTO implements Serializable {
 
     private Duration duration;
 
+    private String pictures;
+
     
     public Long getId() {
         return id;
@@ -91,6 +93,14 @@ public class RecipeDTO implements Serializable {
         this.duration = duration;
     }
 
+    public String getPictures() {
+        return pictures;
+    }
+
+    public void setPictures(String pictures) {
+        this.pictures = pictures;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -120,6 +130,7 @@ public class RecipeDTO implements Serializable {
             ", steps='" + getSteps() + "'" +
             ", comment='" + getComment() + "'" +
             ", duration='" + getDuration() + "'" +
+            ", pictures='" + getPictures() + "'" +
             "}";
     }
 }

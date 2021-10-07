@@ -67,6 +67,9 @@ public class RecipeResourceIT {
     private static final Duration UPDATED_DURATION = Duration.ofHours(12);
     private static final Duration SMALLER_DURATION = Duration.ofHours(5);
 
+    private static final String DEFAULT_PICTURES = "AAAAAAAAAA";
+    private static final String UPDATED_PICTURES = "BBBBBBBBBB";
+
     @Autowired
     private RecipeRepository recipeRepository;
 
@@ -109,7 +112,8 @@ public class RecipeResourceIT {
             .ingredients(DEFAULT_INGREDIENTS)
             .steps(DEFAULT_STEPS)
             .comment(DEFAULT_COMMENT)
-            .duration(DEFAULT_DURATION);
+            .duration(DEFAULT_DURATION)
+            .pictures(DEFAULT_PICTURES);
         return recipe;
     }
     /**
@@ -126,7 +130,8 @@ public class RecipeResourceIT {
             .ingredients(UPDATED_INGREDIENTS)
             .steps(UPDATED_STEPS)
             .comment(UPDATED_COMMENT)
-            .duration(UPDATED_DURATION);
+            .duration(UPDATED_DURATION)
+            .pictures(UPDATED_PICTURES);
         return recipe;
     }
 
@@ -157,6 +162,7 @@ public class RecipeResourceIT {
         assertThat(testRecipe.getSteps()).isEqualTo(DEFAULT_STEPS);
         assertThat(testRecipe.getComment()).isEqualTo(DEFAULT_COMMENT);
         assertThat(testRecipe.getDuration()).isEqualTo(DEFAULT_DURATION);
+        assertThat(testRecipe.getPictures()).isEqualTo(DEFAULT_PICTURES);
 
         // Validate the Recipe in Elasticsearch
         verify(mockRecipeSearchRepository, times(1)).save(testRecipe);
@@ -223,7 +229,8 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.[*].ingredients").value(hasItem(DEFAULT_INGREDIENTS)))
             .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)))
             .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)))
-            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())));
+            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())))
+            .andExpect(jsonPath("$.[*].pictures").value(hasItem(DEFAULT_PICTURES)));
     }
     
     @Test
@@ -243,7 +250,8 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.ingredients").value(DEFAULT_INGREDIENTS))
             .andExpect(jsonPath("$.steps").value(DEFAULT_STEPS))
             .andExpect(jsonPath("$.comment").value(DEFAULT_COMMENT))
-            .andExpect(jsonPath("$.duration").value(DEFAULT_DURATION.toString()));
+            .andExpect(jsonPath("$.duration").value(DEFAULT_DURATION.toString()))
+            .andExpect(jsonPath("$.pictures").value(DEFAULT_PICTURES));
     }
 
 
@@ -812,6 +820,84 @@ public class RecipeResourceIT {
         defaultRecipeShouldBeFound("duration.greaterThan=" + SMALLER_DURATION);
     }
 
+
+    @Test
+    @Transactional
+    public void getAllRecipesByPicturesIsEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where pictures equals to DEFAULT_PICTURES
+        defaultRecipeShouldBeFound("pictures.equals=" + DEFAULT_PICTURES);
+
+        // Get all the recipeList where pictures equals to UPDATED_PICTURES
+        defaultRecipeShouldNotBeFound("pictures.equals=" + UPDATED_PICTURES);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByPicturesIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where pictures not equals to DEFAULT_PICTURES
+        defaultRecipeShouldNotBeFound("pictures.notEquals=" + DEFAULT_PICTURES);
+
+        // Get all the recipeList where pictures not equals to UPDATED_PICTURES
+        defaultRecipeShouldBeFound("pictures.notEquals=" + UPDATED_PICTURES);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByPicturesIsInShouldWork() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where pictures in DEFAULT_PICTURES or UPDATED_PICTURES
+        defaultRecipeShouldBeFound("pictures.in=" + DEFAULT_PICTURES + "," + UPDATED_PICTURES);
+
+        // Get all the recipeList where pictures equals to UPDATED_PICTURES
+        defaultRecipeShouldNotBeFound("pictures.in=" + UPDATED_PICTURES);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByPicturesIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where pictures is not null
+        defaultRecipeShouldBeFound("pictures.specified=true");
+
+        // Get all the recipeList where pictures is null
+        defaultRecipeShouldNotBeFound("pictures.specified=false");
+    }
+                @Test
+    @Transactional
+    public void getAllRecipesByPicturesContainsSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where pictures contains DEFAULT_PICTURES
+        defaultRecipeShouldBeFound("pictures.contains=" + DEFAULT_PICTURES);
+
+        // Get all the recipeList where pictures contains UPDATED_PICTURES
+        defaultRecipeShouldNotBeFound("pictures.contains=" + UPDATED_PICTURES);
+    }
+
+    @Test
+    @Transactional
+    public void getAllRecipesByPicturesNotContainsSomething() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        // Get all the recipeList where pictures does not contain DEFAULT_PICTURES
+        defaultRecipeShouldNotBeFound("pictures.doesNotContain=" + DEFAULT_PICTURES);
+
+        // Get all the recipeList where pictures does not contain UPDATED_PICTURES
+        defaultRecipeShouldBeFound("pictures.doesNotContain=" + UPDATED_PICTURES);
+    }
+
     /**
      * Executes the search, and checks that the default entity is returned.
      */
@@ -826,7 +912,8 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.[*].ingredients").value(hasItem(DEFAULT_INGREDIENTS)))
             .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)))
             .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)))
-            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())));
+            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())))
+            .andExpect(jsonPath("$.[*].pictures").value(hasItem(DEFAULT_PICTURES)));
 
         // Check, that the count call also returns 1
         restRecipeMockMvc.perform(get("/api/recipes/count?sort=id,desc&" + filter))
@@ -879,7 +966,8 @@ public class RecipeResourceIT {
             .ingredients(UPDATED_INGREDIENTS)
             .steps(UPDATED_STEPS)
             .comment(UPDATED_COMMENT)
-            .duration(UPDATED_DURATION);
+            .duration(UPDATED_DURATION)
+            .pictures(UPDATED_PICTURES);
         RecipeDTO recipeDTO = recipeMapper.toDto(updatedRecipe);
 
         restRecipeMockMvc.perform(put("/api/recipes")
@@ -898,6 +986,7 @@ public class RecipeResourceIT {
         assertThat(testRecipe.getSteps()).isEqualTo(UPDATED_STEPS);
         assertThat(testRecipe.getComment()).isEqualTo(UPDATED_COMMENT);
         assertThat(testRecipe.getDuration()).isEqualTo(UPDATED_DURATION);
+        assertThat(testRecipe.getPictures()).isEqualTo(UPDATED_PICTURES);
 
         // Validate the Recipe in Elasticsearch
         verify(mockRecipeSearchRepository, times(1)).save(testRecipe);
@@ -966,6 +1055,7 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.[*].ingredients").value(hasItem(DEFAULT_INGREDIENTS)))
             .andExpect(jsonPath("$.[*].steps").value(hasItem(DEFAULT_STEPS)))
             .andExpect(jsonPath("$.[*].comment").value(hasItem(DEFAULT_COMMENT)))
-            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())));
+            .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())))
+            .andExpect(jsonPath("$.[*].pictures").value(hasItem(DEFAULT_PICTURES)));
     }
 }

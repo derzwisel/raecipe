@@ -24,6 +24,7 @@ export class RecipeUpdateComponent implements OnInit {
     steps: [],
     comment: [],
     duration: [],
+    pictures: [],
   });
 
   constructor(protected recipeService: RecipeService, protected activatedRoute: ActivatedRoute, private fb: FormBuilder) {}
@@ -44,6 +45,7 @@ export class RecipeUpdateComponent implements OnInit {
       steps: recipe.steps,
       comment: recipe.comment,
       duration: recipe.duration,
+      pictures: recipe.pictures,
     });
   }
 
@@ -72,6 +74,7 @@ export class RecipeUpdateComponent implements OnInit {
       steps: this.editForm.get(['steps'])!.value,
       comment: this.editForm.get(['comment'])!.value,
       duration: this.editForm.get(['duration'])!.value,
+      pictures: this.editForm.get(['pictures'])!.value,
     };
   }
 

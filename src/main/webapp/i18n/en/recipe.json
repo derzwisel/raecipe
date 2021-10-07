@@ -23,7 +23,8 @@
       "ingredients": "Ingredients",
       "steps": "Steps",
       "comment": "Comment",
-      "duration": "Duration"
+      "duration": "Duration",
+      "pictures": "Pictures"
     }
   }
 }
