@@ -4,10 +4,11 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { IBook } from '../book.model';
 import { sampleWithRequiredData, sampleWithNewData, sampleWithPartialData, sampleWithFullData } from '../book.test-samples';
 
-import { BookService } from './book.service';
+import { BookService, RestBook } from './book.service';
 
-const requireRestSample: IBook = {
+const requireRestSample: RestBook = {
   ...sampleWithRequiredData,
+  creationDate: sampleWithRequiredData.creationDate?.toJSON(),
 };
 
 describe('Book Service', () => {

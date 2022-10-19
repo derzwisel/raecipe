@@ -1,3 +1,5 @@
+import dayjs from 'dayjs/esm';
+
 import { IBook, NewBook } from './book.model';
 
 export const sampleWithRequiredData: IBook = {
@@ -6,20 +8,21 @@ export const sampleWithRequiredData: IBook = {
 };
 
 export const sampleWithPartialData: IBook = {
-  id: 528,
-  name: 'Naira object-oriented Wooden',
-  creator: 'AI',
+  id: 75340,
+  name: 'Rhode bandwidth Fresh',
+  creator: 'networks Steel bandwidth',
 };
 
 export const sampleWithFullData: IBook = {
-  id: 56591,
-  name: 'HTTP',
+  id: 32668,
+  name: 'Analyst Streamlined',
   published: true,
-  creator: 'Intelligent invoice Egypt',
+  creator: 'harness implement Toys',
+  creationDate: dayjs('2020-10-17T02:44'),
 };
 
 export const sampleWithNewData: NewBook = {
-  name: 'programming',
+  name: 'Bedfordshire copying',
   id: null,
 };
 

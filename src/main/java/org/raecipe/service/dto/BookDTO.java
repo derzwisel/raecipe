@@ -1,6 +1,7 @@
 package org.raecipe.service.dto;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -20,6 +21,8 @@ public class BookDTO implements Serializable {
     private Boolean published;
 
     private String creator;
+
+    private ZonedDateTime creationDate;
 
     private Set<RecipeDTO> recipes = new HashSet<>();
 
@@ -53,6 +56,14 @@ public class BookDTO implements Serializable {
 
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    public ZonedDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(ZonedDateTime creationDate) {
+        this.creationDate = creationDate;
     }
 
     public Set<RecipeDTO> getRecipes() {
@@ -92,6 +103,7 @@ public class BookDTO implements Serializable {
             ", name='" + getName() + "'" +
             ", published='" + getPublished() + "'" +
             ", creator='" + getCreator() + "'" +
+            ", creationDate='" + getCreationDate() + "'" +
             ", recipes=" + getRecipes() +
             "}";
     }

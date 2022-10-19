@@ -1,6 +1,7 @@
 package org.raecipe.domain;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.*;
@@ -35,6 +36,9 @@ public class Book implements Serializable {
 
     @Column(name = "creator")
     private String creator;
+
+    @Column(name = "creation_date")
+    private ZonedDateTime creationDate;
 
     @ManyToMany
     @JoinTable(name = "rel_book__recipe", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "recipe_id"))
@@ -95,6 +99,19 @@ public class Book implements Serializable {
         this.creator = creator;
     }
 
+    public ZonedDateTime getCreationDate() {
+        return this.creationDate;
+    }
+
+    public Book creationDate(ZonedDateTime creationDate) {
+        this.setCreationDate(creationDate);
+        return this;
+    }
+
+    public void setCreationDate(ZonedDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
+
     public Set<Recipe> getRecipes() {
         return this.recipes;
     }
@@ -145,6 +162,7 @@ public class Book implements Serializable {
             ", name='" + getName() + "'" +
             ", published='" + getPublished() + "'" +
             ", creator='" + getCreator() + "'" +
+            ", creationDate='" + getCreationDate() + "'" +
             "}";
     }
 }

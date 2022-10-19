@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 
+import dayjs from 'dayjs/esm';
+import { DATE_TIME_FORMAT } from 'app/config/input.constants';
 import { IBook, NewBook } from '../book.model';
 
 /**
@@ -14,14 +16,26 @@ type PartialWithRequiredKeyOf<T extends { id: unknown }> = Partial<Omit<T, 'id'>
  */
 type BookFormGroupInput = IBook | PartialWithRequiredKeyOf<NewBook>;
 
-type BookFormDefaults = Pick<NewBook, 'id' | 'published' | 'recipes'>;
+/**
+ * Type that converts some properties for forms.
+ */
+type FormValueOf<T extends IBook | NewBook> = Omit<T, 'creationDate'> & {
+  creationDate?: string | null;
+};
+
+type BookFormRawValue = FormValueOf<IBook>;
+
+type NewBookFormRawValue = FormValueOf<NewBook>;
+
+type BookFormDefaults = Pick<NewBook, 'id' | 'published' | 'creationDate' | 'recipes'>;
 
 type BookFormGroupContent = {
-  id: FormControl<IBook['id'] | NewBook['id']>;
-  name: FormControl<IBook['name']>;
-  published: FormControl<IBook['published']>;
-  creator: FormControl<IBook['creator']>;
-  recipes: FormControl<IBook['recipes']>;
+  id: FormControl<BookFormRawValue['id'] | NewBook['id']>;
+  name: FormControl<BookFormRawValue['name']>;
+  published: FormControl<BookFormRawValue['published']>;
+  creator: FormControl<BookFormRawValue['creator']>;
+  creationDate: FormControl<BookFormRawValue['creationDate']>;
+  recipes: FormControl<BookFormRawValue['recipes']>;
 };
 
 export type BookFormGroup = FormGroup<BookFormGroupContent>;
@@ -29,10 +43,10 @@ export type BookFormGroup = FormGroup<BookFormGroupContent>;
 @Injectable({ providedIn: 'root' })
 export class BookFormService {
   createBookFormGroup(book: BookFormGroupInput = { id: null }): BookFormGroup {
-    const bookRawValue = {
+    const bookRawValue = this.convertBookToBookRawValue({
       ...this.getFormDefaults(),
       ...book,
-    };
+    });
     return new FormGroup<BookFormGroupContent>({
       id: new FormControl(
         { value: bookRawValue.id, disabled: true },
@@ -46,16 +60,17 @@ export class BookFormService {
       }),
       published: new FormControl(bookRawValue.published),
       creator: new FormControl(bookRawValue.creator),
+      creationDate: new FormControl(bookRawValue.creationDate),
       recipes: new FormControl(bookRawValue.recipes ?? []),
     });
   }
 
   getBook(form: BookFormGroup): IBook | NewBook {
-    return form.getRawValue() as IBook | NewBook;
+    return this.convertBookRawValueToBook(form.getRawValue() as BookFormRawValue | NewBookFormRawValue);
   }
 
   resetForm(form: BookFormGroup, book: BookFormGroupInput): void {
-    const bookRawValue = { ...this.getFormDefaults(), ...book };
+    const bookRawValue = this.convertBookToBookRawValue({ ...this.getFormDefaults(), ...book });
     form.reset(
       {
         ...bookRawValue,
@@ -65,10 +80,30 @@ export class BookFormService {
   }
 
   private getFormDefaults(): BookFormDefaults {
+    const currentTime = dayjs();
+
     return {
       id: null,
       published: false,
+      creationDate: currentTime,
       recipes: [],
+    };
+  }
+
+  private convertBookRawValueToBook(rawBook: BookFormRawValue | NewBookFormRawValue): IBook | NewBook {
+    return {
+      ...rawBook,
+      creationDate: dayjs(rawBook.creationDate, DATE_TIME_FORMAT),
+    };
+  }
+
+  private convertBookToBookRawValue(
+    book: IBook | (Partial<NewBook> & BookFormDefaults)
+  ): BookFormRawValue | PartialWithRequiredKeyOf<NewBookFormRawValue> {
+    return {
+      ...book,
+      creationDate: book.creationDate ? book.creationDate.format(DATE_TIME_FORMAT) : undefined,
+      recipes: book.recipes ?? [],
     };
   }
 }

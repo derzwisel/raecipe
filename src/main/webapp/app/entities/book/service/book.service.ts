@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import dayjs from 'dayjs/esm';
 
 import { isPresent } from 'app/core/util/operators';
 import { ApplicationConfigService } from 'app/core/config/application-config.service';
@@ -9,6 +11,16 @@ import { SearchWithPagination } from 'app/core/request/request.model';
 import { IBook, NewBook } from '../book.model';
 
 export type PartialUpdateBook = Partial<IBook> & Pick<IBook, 'id'>;
+
+type RestOf<T extends IBook | NewBook> = Omit<T, 'creationDate'> & {
+  creationDate?: string | null;
+};
+
+export type RestBook = RestOf<IBook>;
+
+export type NewRestBook = RestOf<NewBook>;
+
+export type PartialUpdateRestBook = RestOf<PartialUpdateBook>;
 
 export type EntityResponseType = HttpResponse<IBook>;
 export type EntityArrayResponseType = HttpResponse<IBook[]>;
@@ -21,24 +33,35 @@ export class BookService {
   constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
 
   create(book: NewBook): Observable<EntityResponseType> {
-    return this.http.post<IBook>(this.resourceUrl, book, { observe: 'response' });
+    const copy = this.convertDateFromClient(book);
+    return this.http.post<RestBook>(this.resourceUrl, copy, { observe: 'response' }).pipe(map(res => this.convertResponseFromServer(res)));
   }
 
   update(book: IBook): Observable<EntityResponseType> {
-    return this.http.put<IBook>(`${this.resourceUrl}/${this.getBookIdentifier(book)}`, book, { observe: 'response' });
+    const copy = this.convertDateFromClient(book);
+    return this.http
+      .put<RestBook>(`${this.resourceUrl}/${this.getBookIdentifier(book)}`, copy, { observe: 'response' })
+      .pipe(map(res => this.convertResponseFromServer(res)));
   }
 
   partialUpdate(book: PartialUpdateBook): Observable<EntityResponseType> {
-    return this.http.patch<IBook>(`${this.resourceUrl}/${this.getBookIdentifier(book)}`, book, { observe: 'response' });
+    const copy = this.convertDateFromClient(book);
+    return this.http
+      .patch<RestBook>(`${this.resourceUrl}/${this.getBookIdentifier(book)}`, copy, { observe: 'response' })
+      .pipe(map(res => this.convertResponseFromServer(res)));
   }
 
   find(id: number): Observable<EntityResponseType> {
-    return this.http.get<IBook>(`${this.resourceUrl}/${id}`, { observe: 'response' });
+    return this.http
+      .get<RestBook>(`${this.resourceUrl}/${id}`, { observe: 'response' })
+      .pipe(map(res => this.convertResponseFromServer(res)));
   }
 
   query(req?: any): Observable<EntityArrayResponseType> {
     const options = createRequestOption(req);
-    return this.http.get<IBook[]>(this.resourceUrl, { params: options, observe: 'response' });
+    return this.http
+      .get<RestBook[]>(this.resourceUrl, { params: options, observe: 'response' })
+      .pipe(map(res => this.convertResponseArrayFromServer(res)));
   }
 
   delete(id: number): Observable<HttpResponse<{}>> {
@@ -47,7 +70,9 @@ export class BookService {
 
   search(req: SearchWithPagination): Observable<EntityArrayResponseType> {
     const options = createRequestOption(req);
-    return this.http.get<IBook[]>(this.resourceSearchUrl, { params: options, observe: 'response' });
+    return this.http
+      .get<RestBook[]>(this.resourceSearchUrl, { params: options, observe: 'response' })
+      .pipe(map(res => this.convertResponseArrayFromServer(res)));
   }
 
   getBookIdentifier(book: Pick<IBook, 'id'>): number {
@@ -76,5 +101,31 @@ export class BookService {
       return [...booksToAdd, ...bookCollection];
     }
     return bookCollection;
+  }
+
+  protected convertDateFromClient<T extends IBook | NewBook | PartialUpdateBook>(book: T): RestOf<T> {
+    return {
+      ...book,
+      creationDate: book.creationDate?.toJSON() ?? null,
+    };
+  }
+
+  protected convertDateFromServer(restBook: RestBook): IBook {
+    return {
+      ...restBook,
+      creationDate: restBook.creationDate ? dayjs(restBook.creationDate) : undefined,
+    };
+  }
+
+  protected convertResponseFromServer(res: HttpResponse<RestBook>): HttpResponse<IBook> {
+    return res.clone({
+      body: res.body ? this.convertDateFromServer(res.body) : null,
+    });
+  }
+
+  protected convertResponseArrayFromServer(res: HttpResponse<RestBook[]>): HttpResponse<IBook[]> {
+    return res.clone({
+      body: res.body ? res.body.map(item => this.convertDateFromServer(item)) : null,
+    });
   }
 }
