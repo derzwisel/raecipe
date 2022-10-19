@@ -17,7 +17,7 @@ import { ParseLinks } from 'app/core/util/parse-links.service';
   templateUrl: './book.component.html',
 })
 export class BookComponent implements OnInit {
-  private static readonly NOT_SORTABLE_FIELDS_AFTER_SEARCH = ['name'];
+  private static readonly NOT_SORTABLE_FIELDS_AFTER_SEARCH = ['name', 'creator'];
 
   books?: IBook[];
   isLoading = false;

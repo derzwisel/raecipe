@@ -6,18 +6,20 @@ export const sampleWithRequiredData: IBook = {
 };
 
 export const sampleWithPartialData: IBook = {
-  id: 60289,
-  name: 'synthesize',
+  id: 528,
+  name: 'Naira object-oriented Wooden',
+  creator: 'AI',
 };
 
 export const sampleWithFullData: IBook = {
-  id: 77314,
-  name: 'bandwidth',
-  published: false,
+  id: 56591,
+  name: 'HTTP',
+  published: true,
+  creator: 'Intelligent invoice Egypt',
 };
 
 export const sampleWithNewData: NewBook = {
-  name: 'Pizza multi-byte HTTP',
+  name: 'programming',
   id: null,
 };
 

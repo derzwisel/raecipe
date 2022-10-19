@@ -27,6 +27,8 @@ public class BookCriteria implements Serializable, Criteria {
 
     private BooleanFilter published;
 
+    private StringFilter creator;
+
     private LongFilter recipeId;
 
     private Boolean distinct;
@@ -37,6 +39,7 @@ public class BookCriteria implements Serializable, Criteria {
         this.id = other.id == null ? null : other.id.copy();
         this.name = other.name == null ? null : other.name.copy();
         this.published = other.published == null ? null : other.published.copy();
+        this.creator = other.creator == null ? null : other.creator.copy();
         this.recipeId = other.recipeId == null ? null : other.recipeId.copy();
         this.distinct = other.distinct;
     }
@@ -91,6 +94,21 @@ public class BookCriteria implements Serializable, Criteria {
         this.published = published;
     }
 
+    public StringFilter getCreator() {
+        return creator;
+    }
+
+    public StringFilter creator() {
+        if (creator == null) {
+            creator = new StringFilter();
+        }
+        return creator;
+    }
+
+    public void setCreator(StringFilter creator) {
+        this.creator = creator;
+    }
+
     public LongFilter getRecipeId() {
         return recipeId;
     }
@@ -127,6 +145,7 @@ public class BookCriteria implements Serializable, Criteria {
             Objects.equals(id, that.id) &&
             Objects.equals(name, that.name) &&
             Objects.equals(published, that.published) &&
+            Objects.equals(creator, that.creator) &&
             Objects.equals(recipeId, that.recipeId) &&
             Objects.equals(distinct, that.distinct)
         );
@@ -134,7 +153,7 @@ public class BookCriteria implements Serializable, Criteria {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, published, recipeId, distinct);
+        return Objects.hash(id, name, published, creator, recipeId, distinct);
     }
 
     // prettier-ignore
@@ -144,6 +163,7 @@ public class BookCriteria implements Serializable, Criteria {
             (id != null ? "id=" + id + ", " : "") +
             (name != null ? "name=" + name + ", " : "") +
             (published != null ? "published=" + published + ", " : "") +
+            (creator != null ? "creator=" + creator + ", " : "") +
             (recipeId != null ? "recipeId=" + recipeId + ", " : "") +
             (distinct != null ? "distinct=" + distinct + ", " : "") +
             "}";

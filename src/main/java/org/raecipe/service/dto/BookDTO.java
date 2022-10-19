@@ -19,6 +19,8 @@ public class BookDTO implements Serializable {
 
     private Boolean published;
 
+    private String creator;
+
     private Set<RecipeDTO> recipes = new HashSet<>();
 
     public Long getId() {
@@ -43,6 +45,14 @@ public class BookDTO implements Serializable {
 
     public void setPublished(Boolean published) {
         this.published = published;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
 
     public Set<RecipeDTO> getRecipes() {
@@ -81,6 +91,7 @@ public class BookDTO implements Serializable {
             "id=" + getId() +
             ", name='" + getName() + "'" +
             ", published='" + getPublished() + "'" +
+            ", creator='" + getCreator() + "'" +
             ", recipes=" + getRecipes() +
             "}";
     }
