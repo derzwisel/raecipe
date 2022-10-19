@@ -18,6 +18,10 @@
     {
       "fieldName": "creator",
       "fieldType": "String"
+    },
+    {
+      "fieldName": "creationDate",
+      "fieldType": "ZonedDateTime"
     }
   ],
   "fluentMethods": true,

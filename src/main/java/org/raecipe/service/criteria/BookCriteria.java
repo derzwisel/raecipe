@@ -29,6 +29,8 @@ public class BookCriteria implements Serializable, Criteria {
 
     private StringFilter creator;
 
+    private ZonedDateTimeFilter creationDate;
+
     private LongFilter recipeId;
 
     private Boolean distinct;
@@ -40,6 +42,7 @@ public class BookCriteria implements Serializable, Criteria {
         this.name = other.name == null ? null : other.name.copy();
         this.published = other.published == null ? null : other.published.copy();
         this.creator = other.creator == null ? null : other.creator.copy();
+        this.creationDate = other.creationDate == null ? null : other.creationDate.copy();
         this.recipeId = other.recipeId == null ? null : other.recipeId.copy();
         this.distinct = other.distinct;
     }
@@ -109,6 +112,21 @@ public class BookCriteria implements Serializable, Criteria {
         this.creator = creator;
     }
 
+    public ZonedDateTimeFilter getCreationDate() {
+        return creationDate;
+    }
+
+    public ZonedDateTimeFilter creationDate() {
+        if (creationDate == null) {
+            creationDate = new ZonedDateTimeFilter();
+        }
+        return creationDate;
+    }
+
+    public void setCreationDate(ZonedDateTimeFilter creationDate) {
+        this.creationDate = creationDate;
+    }
+
     public LongFilter getRecipeId() {
         return recipeId;
     }
@@ -146,6 +164,7 @@ public class BookCriteria implements Serializable, Criteria {
             Objects.equals(name, that.name) &&
             Objects.equals(published, that.published) &&
             Objects.equals(creator, that.creator) &&
+            Objects.equals(creationDate, that.creationDate) &&
             Objects.equals(recipeId, that.recipeId) &&
             Objects.equals(distinct, that.distinct)
         );
@@ -153,7 +172,7 @@ public class BookCriteria implements Serializable, Criteria {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, published, creator, recipeId, distinct);
+        return Objects.hash(id, name, published, creator, creationDate, recipeId, distinct);
     }
 
     // prettier-ignore
@@ -164,6 +183,7 @@ public class BookCriteria implements Serializable, Criteria {
             (name != null ? "name=" + name + ", " : "") +
             (published != null ? "published=" + published + ", " : "") +
             (creator != null ? "creator=" + creator + ", " : "") +
+            (creationDate != null ? "creationDate=" + creationDate + ", " : "") +
             (recipeId != null ? "recipeId=" + recipeId + ", " : "") +
             (distinct != null ? "distinct=" + distinct + ", " : "") +
             "}";

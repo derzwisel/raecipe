@@ -4,9 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.*;
+import static org.raecipe.web.rest.TestUtil.sameInstant;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,6 +64,10 @@ class BookResourceIT {
     private static final String DEFAULT_CREATOR = "AAAAAAAAAA";
     private static final String UPDATED_CREATOR = "BBBBBBBBBB";
 
+    private static final ZonedDateTime DEFAULT_CREATION_DATE = ZonedDateTime.ofInstant(Instant.ofEpochMilli(0L), ZoneOffset.UTC);
+    private static final ZonedDateTime UPDATED_CREATION_DATE = ZonedDateTime.now(ZoneId.systemDefault()).withNano(0);
+    private static final ZonedDateTime SMALLER_CREATION_DATE = ZonedDateTime.ofInstant(Instant.ofEpochMilli(-1L), ZoneOffset.UTC);
+
     private static final String ENTITY_API_URL = "/api/books";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
     private static final String ENTITY_SEARCH_API_URL = "/api/_search/books";
@@ -96,7 +105,7 @@ class BookResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Book createEntity(EntityManager em) {
-        Book book = new Book().name(DEFAULT_NAME).published(DEFAULT_PUBLISHED).creator(DEFAULT_CREATOR);
+        Book book = new Book().name(DEFAULT_NAME).published(DEFAULT_PUBLISHED).creator(DEFAULT_CREATOR).creationDate(DEFAULT_CREATION_DATE);
         return book;
     }
 
@@ -107,7 +116,7 @@ class BookResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Book createUpdatedEntity(EntityManager em) {
-        Book book = new Book().name(UPDATED_NAME).published(UPDATED_PUBLISHED).creator(UPDATED_CREATOR);
+        Book book = new Book().name(UPDATED_NAME).published(UPDATED_PUBLISHED).creator(UPDATED_CREATOR).creationDate(UPDATED_CREATION_DATE);
         return book;
     }
 
@@ -146,6 +155,7 @@ class BookResourceIT {
         assertThat(testBook.getName()).isEqualTo(DEFAULT_NAME);
         assertThat(testBook.getPublished()).isEqualTo(DEFAULT_PUBLISHED);
         assertThat(testBook.getCreator()).isEqualTo(DEFAULT_CREATOR);
+        assertThat(testBook.getCreationDate()).isEqualTo(DEFAULT_CREATION_DATE);
     }
 
     @Test
@@ -205,7 +215,8 @@ class BookResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(book.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
             .andExpect(jsonPath("$.[*].published").value(hasItem(DEFAULT_PUBLISHED.booleanValue())))
-            .andExpect(jsonPath("$.[*].creator").value(hasItem(DEFAULT_CREATOR)));
+            .andExpect(jsonPath("$.[*].creator").value(hasItem(DEFAULT_CREATOR)))
+            .andExpect(jsonPath("$.[*].creationDate").value(hasItem(sameInstant(DEFAULT_CREATION_DATE))));
     }
 
     @SuppressWarnings({ "unchecked" })
@@ -239,7 +250,8 @@ class BookResourceIT {
             .andExpect(jsonPath("$.id").value(book.getId().intValue()))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
             .andExpect(jsonPath("$.published").value(DEFAULT_PUBLISHED.booleanValue()))
-            .andExpect(jsonPath("$.creator").value(DEFAULT_CREATOR));
+            .andExpect(jsonPath("$.creator").value(DEFAULT_CREATOR))
+            .andExpect(jsonPath("$.creationDate").value(sameInstant(DEFAULT_CREATION_DATE)));
     }
 
     @Test
@@ -431,6 +443,97 @@ class BookResourceIT {
 
     @Test
     @Transactional
+    void getAllBooksByCreationDateIsEqualToSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creationDate equals to DEFAULT_CREATION_DATE
+        defaultBookShouldBeFound("creationDate.equals=" + DEFAULT_CREATION_DATE);
+
+        // Get all the bookList where creationDate equals to UPDATED_CREATION_DATE
+        defaultBookShouldNotBeFound("creationDate.equals=" + UPDATED_CREATION_DATE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBooksByCreationDateIsInShouldWork() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creationDate in DEFAULT_CREATION_DATE or UPDATED_CREATION_DATE
+        defaultBookShouldBeFound("creationDate.in=" + DEFAULT_CREATION_DATE + "," + UPDATED_CREATION_DATE);
+
+        // Get all the bookList where creationDate equals to UPDATED_CREATION_DATE
+        defaultBookShouldNotBeFound("creationDate.in=" + UPDATED_CREATION_DATE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBooksByCreationDateIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creationDate is not null
+        defaultBookShouldBeFound("creationDate.specified=true");
+
+        // Get all the bookList where creationDate is null
+        defaultBookShouldNotBeFound("creationDate.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllBooksByCreationDateIsGreaterThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creationDate is greater than or equal to DEFAULT_CREATION_DATE
+        defaultBookShouldBeFound("creationDate.greaterThanOrEqual=" + DEFAULT_CREATION_DATE);
+
+        // Get all the bookList where creationDate is greater than or equal to UPDATED_CREATION_DATE
+        defaultBookShouldNotBeFound("creationDate.greaterThanOrEqual=" + UPDATED_CREATION_DATE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBooksByCreationDateIsLessThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creationDate is less than or equal to DEFAULT_CREATION_DATE
+        defaultBookShouldBeFound("creationDate.lessThanOrEqual=" + DEFAULT_CREATION_DATE);
+
+        // Get all the bookList where creationDate is less than or equal to SMALLER_CREATION_DATE
+        defaultBookShouldNotBeFound("creationDate.lessThanOrEqual=" + SMALLER_CREATION_DATE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBooksByCreationDateIsLessThanSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creationDate is less than DEFAULT_CREATION_DATE
+        defaultBookShouldNotBeFound("creationDate.lessThan=" + DEFAULT_CREATION_DATE);
+
+        // Get all the bookList where creationDate is less than UPDATED_CREATION_DATE
+        defaultBookShouldBeFound("creationDate.lessThan=" + UPDATED_CREATION_DATE);
+    }
+
+    @Test
+    @Transactional
+    void getAllBooksByCreationDateIsGreaterThanSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creationDate is greater than DEFAULT_CREATION_DATE
+        defaultBookShouldNotBeFound("creationDate.greaterThan=" + DEFAULT_CREATION_DATE);
+
+        // Get all the bookList where creationDate is greater than SMALLER_CREATION_DATE
+        defaultBookShouldBeFound("creationDate.greaterThan=" + SMALLER_CREATION_DATE);
+    }
+
+    @Test
+    @Transactional
     void getAllBooksByRecipeIsEqualToSomething() throws Exception {
         Recipe recipe;
         if (TestUtil.findAll(em, Recipe.class).isEmpty()) {
@@ -463,7 +566,8 @@ class BookResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(book.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
             .andExpect(jsonPath("$.[*].published").value(hasItem(DEFAULT_PUBLISHED.booleanValue())))
-            .andExpect(jsonPath("$.[*].creator").value(hasItem(DEFAULT_CREATOR)));
+            .andExpect(jsonPath("$.[*].creator").value(hasItem(DEFAULT_CREATOR)))
+            .andExpect(jsonPath("$.[*].creationDate").value(hasItem(sameInstant(DEFAULT_CREATION_DATE))));
 
         // Check, that the count call also returns 1
         restBookMockMvc
@@ -513,7 +617,7 @@ class BookResourceIT {
         Book updatedBook = bookRepository.findById(book.getId()).get();
         // Disconnect from session so that the updates on updatedBook are not directly saved in db
         em.detach(updatedBook);
-        updatedBook.name(UPDATED_NAME).published(UPDATED_PUBLISHED).creator(UPDATED_CREATOR);
+        updatedBook.name(UPDATED_NAME).published(UPDATED_PUBLISHED).creator(UPDATED_CREATOR).creationDate(UPDATED_CREATION_DATE);
         BookDTO bookDTO = bookMapper.toDto(updatedBook);
 
         restBookMockMvc
@@ -531,6 +635,7 @@ class BookResourceIT {
         assertThat(testBook.getName()).isEqualTo(UPDATED_NAME);
         assertThat(testBook.getPublished()).isEqualTo(UPDATED_PUBLISHED);
         assertThat(testBook.getCreator()).isEqualTo(UPDATED_CREATOR);
+        assertThat(testBook.getCreationDate()).isEqualTo(UPDATED_CREATION_DATE);
         await()
             .atMost(5, TimeUnit.SECONDS)
             .untilAsserted(() -> {
@@ -541,6 +646,7 @@ class BookResourceIT {
                 assertThat(testBookSearch.getName()).isEqualTo(UPDATED_NAME);
                 assertThat(testBookSearch.getPublished()).isEqualTo(UPDATED_PUBLISHED);
                 assertThat(testBookSearch.getCreator()).isEqualTo(UPDATED_CREATOR);
+                assertThat(testBookSearch.getCreationDate()).isEqualTo(UPDATED_CREATION_DATE);
             });
     }
 
@@ -645,6 +751,7 @@ class BookResourceIT {
         assertThat(testBook.getName()).isEqualTo(DEFAULT_NAME);
         assertThat(testBook.getPublished()).isEqualTo(DEFAULT_PUBLISHED);
         assertThat(testBook.getCreator()).isEqualTo(DEFAULT_CREATOR);
+        assertThat(testBook.getCreationDate()).isEqualTo(DEFAULT_CREATION_DATE);
     }
 
     @Test
@@ -659,7 +766,7 @@ class BookResourceIT {
         Book partialUpdatedBook = new Book();
         partialUpdatedBook.setId(book.getId());
 
-        partialUpdatedBook.name(UPDATED_NAME).published(UPDATED_PUBLISHED).creator(UPDATED_CREATOR);
+        partialUpdatedBook.name(UPDATED_NAME).published(UPDATED_PUBLISHED).creator(UPDATED_CREATOR).creationDate(UPDATED_CREATION_DATE);
 
         restBookMockMvc
             .perform(
@@ -676,6 +783,7 @@ class BookResourceIT {
         assertThat(testBook.getName()).isEqualTo(UPDATED_NAME);
         assertThat(testBook.getPublished()).isEqualTo(UPDATED_PUBLISHED);
         assertThat(testBook.getCreator()).isEqualTo(UPDATED_CREATOR);
+        assertThat(testBook.getCreationDate()).isEqualTo(UPDATED_CREATION_DATE);
     }
 
     @Test
@@ -791,6 +899,7 @@ class BookResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(book.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
             .andExpect(jsonPath("$.[*].published").value(hasItem(DEFAULT_PUBLISHED.booleanValue())))
-            .andExpect(jsonPath("$.[*].creator").value(hasItem(DEFAULT_CREATOR)));
+            .andExpect(jsonPath("$.[*].creator").value(hasItem(DEFAULT_CREATOR)))
+            .andExpect(jsonPath("$.[*].creationDate").value(hasItem(sameInstant(DEFAULT_CREATION_DATE))));
     }
 }

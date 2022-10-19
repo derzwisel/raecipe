@@ -80,6 +80,12 @@
               <fa-icon class="p-1" *ngIf="!currentSearch" icon="sort"></fa-icon>
             </div>
           </th>
+          <th scope="col" jhiSortBy="creationDate">
+            <div class="d-flex">
+              <span jhiTranslate="raecipeApp.book.creationDate">Creation Date</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
           <th scope="col"></th>
         </tr>
       </thead>
@@ -96,6 +102,7 @@
           <td>{{ book.name }}</td>
           <td>{{ book.published }}</td>
           <td>{{ book.creator }}</td>
+          <td>{{ book.creationDate | formatMediumDatetime }}</td>
           <td class="text-end">
             <div class="btn-group">
               <button type="submit" [routerLink]="['/book', book.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">

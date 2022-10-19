@@ -1,3 +1,4 @@
+import dayjs from 'dayjs/esm';
 import { IRecipe } from 'app/entities/recipe/recipe.model';
 
 export interface IBook {
@@ -5,6 +6,7 @@ export interface IBook {
   name?: string | null;
   published?: boolean | null;
   creator?: string | null;
+  creationDate?: dayjs.Dayjs | null;
   recipes?: Pick<IRecipe, 'id' | 'name'>[] | null;
 }
 
