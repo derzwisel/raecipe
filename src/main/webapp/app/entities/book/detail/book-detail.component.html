@@ -22,6 +22,10 @@
         <dd>
           <span>{{ book.published }}</span>
         </dd>
+        <dt><span jhiTranslate="raecipeApp.book.creator">Creator</span></dt>
+        <dd>
+          <span>{{ book.creator }}</span>
+        </dd>
         <dt><span jhiTranslate="raecipeApp.book.recipe">Recipe</span></dt>
         <dd>
           <span *ngFor="let recipe of book.recipes; let last = last">

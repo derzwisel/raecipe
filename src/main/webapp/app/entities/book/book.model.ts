@@ -4,6 +4,7 @@ export interface IBook {
   id: number;
   name?: string | null;
   published?: boolean | null;
+  creator?: string | null;
   recipes?: Pick<IRecipe, 'id' | 'name'>[] | null;
 }
 

@@ -33,6 +33,9 @@ public class Book implements Serializable {
     @Column(name = "published")
     private Boolean published;
 
+    @Column(name = "creator")
+    private String creator;
+
     @ManyToMany
     @JoinTable(name = "rel_book__recipe", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "recipe_id"))
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -77,6 +80,19 @@ public class Book implements Serializable {
 
     public void setPublished(Boolean published) {
         this.published = published;
+    }
+
+    public String getCreator() {
+        return this.creator;
+    }
+
+    public Book creator(String creator) {
+        this.setCreator(creator);
+        return this;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
 
     public Set<Recipe> getRecipes() {
@@ -128,6 +144,7 @@ public class Book implements Serializable {
             "id=" + getId() +
             ", name='" + getName() + "'" +
             ", published='" + getPublished() + "'" +
+            ", creator='" + getCreator() + "'" +
             "}";
     }
 }

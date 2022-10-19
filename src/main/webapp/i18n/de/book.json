@@ -21,6 +21,7 @@
       "id": "ID",
       "name": "Name",
       "published": "Published",
+      "creator": "Creator",
       "recipe": "Recipe"
     }
   }

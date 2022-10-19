@@ -74,6 +74,12 @@
               <fa-icon class="p-1" icon="sort"></fa-icon>
             </div>
           </th>
+          <th scope="col" jhiSortBy="creator">
+            <div class="d-flex">
+              <span jhiTranslate="raecipeApp.book.creator">Creator</span>
+              <fa-icon class="p-1" *ngIf="!currentSearch" icon="sort"></fa-icon>
+            </div>
+          </th>
           <th scope="col"></th>
         </tr>
       </thead>
@@ -89,6 +95,7 @@
           </td>
           <td>{{ book.name }}</td>
           <td>{{ book.published }}</td>
+          <td>{{ book.creator }}</td>
           <td class="text-end">
             <div class="btn-group">
               <button type="submit" [routerLink]="['/book', book.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">

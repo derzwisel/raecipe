@@ -20,6 +20,7 @@ type BookFormGroupContent = {
   id: FormControl<IBook['id'] | NewBook['id']>;
   name: FormControl<IBook['name']>;
   published: FormControl<IBook['published']>;
+  creator: FormControl<IBook['creator']>;
   recipes: FormControl<IBook['recipes']>;
 };
 
@@ -44,6 +45,7 @@ export class BookFormService {
         validators: [Validators.required],
       }),
       published: new FormControl(bookRawValue.published),
+      creator: new FormControl(bookRawValue.creator),
       recipes: new FormControl(bookRawValue.recipes ?? []),
     });
   }

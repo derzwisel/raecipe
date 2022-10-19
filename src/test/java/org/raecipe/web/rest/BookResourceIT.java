@@ -56,6 +56,9 @@ class BookResourceIT {
     private static final Boolean DEFAULT_PUBLISHED = false;
     private static final Boolean UPDATED_PUBLISHED = true;
 
+    private static final String DEFAULT_CREATOR = "AAAAAAAAAA";
+    private static final String UPDATED_CREATOR = "BBBBBBBBBB";
+
     private static final String ENTITY_API_URL = "/api/books";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
     private static final String ENTITY_SEARCH_API_URL = "/api/_search/books";
@@ -93,7 +96,7 @@ class BookResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Book createEntity(EntityManager em) {
-        Book book = new Book().name(DEFAULT_NAME).published(DEFAULT_PUBLISHED);
+        Book book = new Book().name(DEFAULT_NAME).published(DEFAULT_PUBLISHED).creator(DEFAULT_CREATOR);
         return book;
     }
 
@@ -104,7 +107,7 @@ class BookResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Book createUpdatedEntity(EntityManager em) {
-        Book book = new Book().name(UPDATED_NAME).published(UPDATED_PUBLISHED);
+        Book book = new Book().name(UPDATED_NAME).published(UPDATED_PUBLISHED).creator(UPDATED_CREATOR);
         return book;
     }
 
@@ -142,6 +145,7 @@ class BookResourceIT {
         Book testBook = bookList.get(bookList.size() - 1);
         assertThat(testBook.getName()).isEqualTo(DEFAULT_NAME);
         assertThat(testBook.getPublished()).isEqualTo(DEFAULT_PUBLISHED);
+        assertThat(testBook.getCreator()).isEqualTo(DEFAULT_CREATOR);
     }
 
     @Test
@@ -200,7 +204,8 @@ class BookResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(book.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
-            .andExpect(jsonPath("$.[*].published").value(hasItem(DEFAULT_PUBLISHED.booleanValue())));
+            .andExpect(jsonPath("$.[*].published").value(hasItem(DEFAULT_PUBLISHED.booleanValue())))
+            .andExpect(jsonPath("$.[*].creator").value(hasItem(DEFAULT_CREATOR)));
     }
 
     @SuppressWarnings({ "unchecked" })
@@ -233,7 +238,8 @@ class BookResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(book.getId().intValue()))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
-            .andExpect(jsonPath("$.published").value(DEFAULT_PUBLISHED.booleanValue()));
+            .andExpect(jsonPath("$.published").value(DEFAULT_PUBLISHED.booleanValue()))
+            .andExpect(jsonPath("$.creator").value(DEFAULT_CREATOR));
     }
 
     @Test
@@ -360,6 +366,71 @@ class BookResourceIT {
 
     @Test
     @Transactional
+    void getAllBooksByCreatorIsEqualToSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creator equals to DEFAULT_CREATOR
+        defaultBookShouldBeFound("creator.equals=" + DEFAULT_CREATOR);
+
+        // Get all the bookList where creator equals to UPDATED_CREATOR
+        defaultBookShouldNotBeFound("creator.equals=" + UPDATED_CREATOR);
+    }
+
+    @Test
+    @Transactional
+    void getAllBooksByCreatorIsInShouldWork() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creator in DEFAULT_CREATOR or UPDATED_CREATOR
+        defaultBookShouldBeFound("creator.in=" + DEFAULT_CREATOR + "," + UPDATED_CREATOR);
+
+        // Get all the bookList where creator equals to UPDATED_CREATOR
+        defaultBookShouldNotBeFound("creator.in=" + UPDATED_CREATOR);
+    }
+
+    @Test
+    @Transactional
+    void getAllBooksByCreatorIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creator is not null
+        defaultBookShouldBeFound("creator.specified=true");
+
+        // Get all the bookList where creator is null
+        defaultBookShouldNotBeFound("creator.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllBooksByCreatorContainsSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creator contains DEFAULT_CREATOR
+        defaultBookShouldBeFound("creator.contains=" + DEFAULT_CREATOR);
+
+        // Get all the bookList where creator contains UPDATED_CREATOR
+        defaultBookShouldNotBeFound("creator.contains=" + UPDATED_CREATOR);
+    }
+
+    @Test
+    @Transactional
+    void getAllBooksByCreatorNotContainsSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where creator does not contain DEFAULT_CREATOR
+        defaultBookShouldNotBeFound("creator.doesNotContain=" + DEFAULT_CREATOR);
+
+        // Get all the bookList where creator does not contain UPDATED_CREATOR
+        defaultBookShouldBeFound("creator.doesNotContain=" + UPDATED_CREATOR);
+    }
+
+    @Test
+    @Transactional
     void getAllBooksByRecipeIsEqualToSomething() throws Exception {
         Recipe recipe;
         if (TestUtil.findAll(em, Recipe.class).isEmpty()) {
@@ -391,7 +462,8 @@ class BookResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(book.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
-            .andExpect(jsonPath("$.[*].published").value(hasItem(DEFAULT_PUBLISHED.booleanValue())));
+            .andExpect(jsonPath("$.[*].published").value(hasItem(DEFAULT_PUBLISHED.booleanValue())))
+            .andExpect(jsonPath("$.[*].creator").value(hasItem(DEFAULT_CREATOR)));
 
         // Check, that the count call also returns 1
         restBookMockMvc
@@ -441,7 +513,7 @@ class BookResourceIT {
         Book updatedBook = bookRepository.findById(book.getId()).get();
         // Disconnect from session so that the updates on updatedBook are not directly saved in db
         em.detach(updatedBook);
-        updatedBook.name(UPDATED_NAME).published(UPDATED_PUBLISHED);
+        updatedBook.name(UPDATED_NAME).published(UPDATED_PUBLISHED).creator(UPDATED_CREATOR);
         BookDTO bookDTO = bookMapper.toDto(updatedBook);
 
         restBookMockMvc
@@ -458,6 +530,7 @@ class BookResourceIT {
         Book testBook = bookList.get(bookList.size() - 1);
         assertThat(testBook.getName()).isEqualTo(UPDATED_NAME);
         assertThat(testBook.getPublished()).isEqualTo(UPDATED_PUBLISHED);
+        assertThat(testBook.getCreator()).isEqualTo(UPDATED_CREATOR);
         await()
             .atMost(5, TimeUnit.SECONDS)
             .untilAsserted(() -> {
@@ -467,6 +540,7 @@ class BookResourceIT {
                 Book testBookSearch = bookSearchList.get(searchDatabaseSizeAfter - 1);
                 assertThat(testBookSearch.getName()).isEqualTo(UPDATED_NAME);
                 assertThat(testBookSearch.getPublished()).isEqualTo(UPDATED_PUBLISHED);
+                assertThat(testBookSearch.getCreator()).isEqualTo(UPDATED_CREATOR);
             });
     }
 
@@ -570,6 +644,7 @@ class BookResourceIT {
         Book testBook = bookList.get(bookList.size() - 1);
         assertThat(testBook.getName()).isEqualTo(DEFAULT_NAME);
         assertThat(testBook.getPublished()).isEqualTo(DEFAULT_PUBLISHED);
+        assertThat(testBook.getCreator()).isEqualTo(DEFAULT_CREATOR);
     }
 
     @Test
@@ -584,7 +659,7 @@ class BookResourceIT {
         Book partialUpdatedBook = new Book();
         partialUpdatedBook.setId(book.getId());
 
-        partialUpdatedBook.name(UPDATED_NAME).published(UPDATED_PUBLISHED);
+        partialUpdatedBook.name(UPDATED_NAME).published(UPDATED_PUBLISHED).creator(UPDATED_CREATOR);
 
         restBookMockMvc
             .perform(
@@ -600,6 +675,7 @@ class BookResourceIT {
         Book testBook = bookList.get(bookList.size() - 1);
         assertThat(testBook.getName()).isEqualTo(UPDATED_NAME);
         assertThat(testBook.getPublished()).isEqualTo(UPDATED_PUBLISHED);
+        assertThat(testBook.getCreator()).isEqualTo(UPDATED_CREATOR);
     }
 
     @Test
@@ -714,6 +790,7 @@ class BookResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(book.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
-            .andExpect(jsonPath("$.[*].published").value(hasItem(DEFAULT_PUBLISHED.booleanValue())));
+            .andExpect(jsonPath("$.[*].published").value(hasItem(DEFAULT_PUBLISHED.booleanValue())))
+            .andExpect(jsonPath("$.[*].creator").value(hasItem(DEFAULT_CREATOR)));
     }
 }
