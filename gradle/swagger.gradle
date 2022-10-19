@@ -9,7 +9,7 @@ openApiGenerate {
     inputSpec = "$rootDir/src/main/resources/swagger/api.yml".toString()
     outputDir = "$buildDir/openapi".toString()
     apiPackage = "org.raecipe.web.api"
-    modelPackage = "org.raecipe.web.api.model"
+    modelPackage = "org.raecipe.service.api.dto"
     apiFilesConstrainedTo = [""]
     modelFilesConstrainedTo = [""]
     supportingFilesConstrainedTo = ["ApiUtil.java"]

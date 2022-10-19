@@ -1,0 +1,251 @@
+package org.raecipe.service.criteria;
+
+import java.io.Serializable;
+import java.util.Objects;
+import org.springdoc.api.annotations.ParameterObject;
+import tech.jhipster.service.Criteria;
+import tech.jhipster.service.filter.*;
+
+/**
+ * Criteria class for the {@link org.raecipe.domain.Recipe} entity. This class is used
+ * in {@link org.raecipe.web.rest.RecipeResource} to receive all the possible filtering options from
+ * the Http GET request parameters.
+ * For example the following could be a valid request:
+ * {@code /recipes?id.greaterThan=5&attr1.contains=something&attr2.specified=false}
+ * As Spring is unable to properly convert the types, unless specific {@link Filter} class are used, we need to use
+ * fix type specific filters.
+ */
+@ParameterObject
+@SuppressWarnings("common-java:DuplicatedBlocks")
+public class RecipeCriteria implements Serializable, Criteria {
+
+    private static final long serialVersionUID = 1L;
+
+    private LongFilter id;
+
+    private StringFilter name;
+
+    private BooleanFilter starred;
+
+    private StringFilter tags;
+
+    private StringFilter ingredients;
+
+    private StringFilter steps;
+
+    private StringFilter comment;
+
+    private DurationFilter duration;
+
+    private StringFilter pictures;
+
+    private Boolean distinct;
+
+    public RecipeCriteria() {}
+
+    public RecipeCriteria(RecipeCriteria other) {
+        this.id = other.id == null ? null : other.id.copy();
+        this.name = other.name == null ? null : other.name.copy();
+        this.starred = other.starred == null ? null : other.starred.copy();
+        this.tags = other.tags == null ? null : other.tags.copy();
+        this.ingredients = other.ingredients == null ? null : other.ingredients.copy();
+        this.steps = other.steps == null ? null : other.steps.copy();
+        this.comment = other.comment == null ? null : other.comment.copy();
+        this.duration = other.duration == null ? null : other.duration.copy();
+        this.pictures = other.pictures == null ? null : other.pictures.copy();
+        this.distinct = other.distinct;
+    }
+
+    @Override
+    public RecipeCriteria copy() {
+        return new RecipeCriteria(this);
+    }
+
+    public LongFilter getId() {
+        return id;
+    }
+
+    public LongFilter id() {
+        if (id == null) {
+            id = new LongFilter();
+        }
+        return id;
+    }
+
+    public void setId(LongFilter id) {
+        this.id = id;
+    }
+
+    public StringFilter getName() {
+        return name;
+    }
+
+    public StringFilter name() {
+        if (name == null) {
+            name = new StringFilter();
+        }
+        return name;
+    }
+
+    public void setName(StringFilter name) {
+        this.name = name;
+    }
+
+    public BooleanFilter getStarred() {
+        return starred;
+    }
+
+    public BooleanFilter starred() {
+        if (starred == null) {
+            starred = new BooleanFilter();
+        }
+        return starred;
+    }
+
+    public void setStarred(BooleanFilter starred) {
+        this.starred = starred;
+    }
+
+    public StringFilter getTags() {
+        return tags;
+    }
+
+    public StringFilter tags() {
+        if (tags == null) {
+            tags = new StringFilter();
+        }
+        return tags;
+    }
+
+    public void setTags(StringFilter tags) {
+        this.tags = tags;
+    }
+
+    public StringFilter getIngredients() {
+        return ingredients;
+    }
+
+    public StringFilter ingredients() {
+        if (ingredients == null) {
+            ingredients = new StringFilter();
+        }
+        return ingredients;
+    }
+
+    public void setIngredients(StringFilter ingredients) {
+        this.ingredients = ingredients;
+    }
+
+    public StringFilter getSteps() {
+        return steps;
+    }
+
+    public StringFilter steps() {
+        if (steps == null) {
+            steps = new StringFilter();
+        }
+        return steps;
+    }
+
+    public void setSteps(StringFilter steps) {
+        this.steps = steps;
+    }
+
+    public StringFilter getComment() {
+        return comment;
+    }
+
+    public StringFilter comment() {
+        if (comment == null) {
+            comment = new StringFilter();
+        }
+        return comment;
+    }
+
+    public void setComment(StringFilter comment) {
+        this.comment = comment;
+    }
+
+    public DurationFilter getDuration() {
+        return duration;
+    }
+
+    public DurationFilter duration() {
+        if (duration == null) {
+            duration = new DurationFilter();
+        }
+        return duration;
+    }
+
+    public void setDuration(DurationFilter duration) {
+        this.duration = duration;
+    }
+
+    public StringFilter getPictures() {
+        return pictures;
+    }
+
+    public StringFilter pictures() {
+        if (pictures == null) {
+            pictures = new StringFilter();
+        }
+        return pictures;
+    }
+
+    public void setPictures(StringFilter pictures) {
+        this.pictures = pictures;
+    }
+
+    public Boolean getDistinct() {
+        return distinct;
+    }
+
+    public void setDistinct(Boolean distinct) {
+        this.distinct = distinct;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final RecipeCriteria that = (RecipeCriteria) o;
+        return (
+            Objects.equals(id, that.id) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(starred, that.starred) &&
+            Objects.equals(tags, that.tags) &&
+            Objects.equals(ingredients, that.ingredients) &&
+            Objects.equals(steps, that.steps) &&
+            Objects.equals(comment, that.comment) &&
+            Objects.equals(duration, that.duration) &&
+            Objects.equals(pictures, that.pictures) &&
+            Objects.equals(distinct, that.distinct)
+        );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, starred, tags, ingredients, steps, comment, duration, pictures, distinct);
+    }
+
+    // prettier-ignore
+    @Override
+    public String toString() {
+        return "RecipeCriteria{" +
+            (id != null ? "id=" + id + ", " : "") +
+            (name != null ? "name=" + name + ", " : "") +
+            (starred != null ? "starred=" + starred + ", " : "") +
+            (tags != null ? "tags=" + tags + ", " : "") +
+            (ingredients != null ? "ingredients=" + ingredients + ", " : "") +
+            (steps != null ? "steps=" + steps + ", " : "") +
+            (comment != null ? "comment=" + comment + ", " : "") +
+            (duration != null ? "duration=" + duration + ", " : "") +
+            (pictures != null ? "pictures=" + pictures + ", " : "") +
+            (distinct != null ? "distinct=" + distinct + ", " : "") +
+            "}";
+    }
+}

@@ -1,9 +1,14 @@
 package org.raecipe.service;
 
 import java.util.List;
-
 import javax.persistence.criteria.JoinType;
-
+import org.raecipe.domain.*; // for static metamodels
+import org.raecipe.domain.Recipe;
+import org.raecipe.repository.RecipeRepository;
+import org.raecipe.repository.search.RecipeSearchRepository;
+import org.raecipe.service.criteria.RecipeCriteria;
+import org.raecipe.service.dto.RecipeDTO;
+import org.raecipe.service.mapper.RecipeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -11,16 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import io.github.jhipster.service.QueryService;
-
-import org.raecipe.domain.Recipe;
-import org.raecipe.domain.*; // for static metamodels
-import org.raecipe.repository.RecipeRepository;
-import org.raecipe.repository.search.RecipeSearchRepository;
-import org.raecipe.service.dto.RecipeCriteria;
-import org.raecipe.service.dto.RecipeDTO;
-import org.raecipe.service.mapper.RecipeMapper;
+import tech.jhipster.service.QueryService;
 
 /**
  * Service for executing complex queries for {@link Recipe} entities in the database.
@@ -68,8 +64,7 @@ public class RecipeQueryService extends QueryService<Recipe> {
     public Page<RecipeDTO> findByCriteria(RecipeCriteria criteria, Pageable page) {
         log.debug("find by criteria : {}, page: {}", criteria, page);
         final Specification<Recipe> specification = createSpecification(criteria);
-        return recipeRepository.findAll(specification, page)
-            .map(recipeMapper::toDto);
+        return recipeRepository.findAll(specification, page).map(recipeMapper::toDto);
     }
 
     /**
@@ -92,6 +87,10 @@ public class RecipeQueryService extends QueryService<Recipe> {
     protected Specification<Recipe> createSpecification(RecipeCriteria criteria) {
         Specification<Recipe> specification = Specification.where(null);
         if (criteria != null) {
+            // This has to be called first, because the distinct method returns null
+            if (criteria.getDistinct() != null) {
+                specification = specification.and(distinct(criteria.getDistinct()));
+            }
             if (criteria.getId() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getId(), Recipe_.id));
             }

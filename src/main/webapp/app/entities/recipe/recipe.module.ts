@@ -1,16 +1,13 @@
 import { NgModule } from '@angular/core';
-import { RouterModule } from '@angular/router';
-
-import { RaecipeSharedModule } from 'app/shared/shared.module';
-import { RecipeComponent } from './recipe.component';
-import { RecipeDetailComponent } from './recipe-detail.component';
-import { RecipeUpdateComponent } from './recipe-update.component';
-import { RecipeDeleteDialogComponent } from './recipe-delete-dialog.component';
-import { recipeRoute } from './recipe.route';
+import { SharedModule } from 'app/shared/shared.module';
+import { RecipeComponent } from './list/recipe.component';
+import { RecipeDetailComponent } from './detail/recipe-detail.component';
+import { RecipeUpdateComponent } from './update/recipe-update.component';
+import { RecipeDeleteDialogComponent } from './delete/recipe-delete-dialog.component';
+import { RecipeRoutingModule } from './route/recipe-routing.module';
 
 @NgModule({
-  imports: [RaecipeSharedModule, RouterModule.forChild(recipeRoute)],
+  imports: [SharedModule, RecipeRoutingModule],
   declarations: [RecipeComponent, RecipeDetailComponent, RecipeUpdateComponent, RecipeDeleteDialogComponent],
-  entryComponents: [RecipeDeleteDialogComponent],
 })
-export class RaecipeRecipeModule {}
+export class RecipeModule {}

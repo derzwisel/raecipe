@@ -1,7 +1,9 @@
 {
-  "fluentMethods": true,
+  "changelogDate": "20201017143434",
   "clientRootFolder": "",
-  "relationships": [],
+  "databaseType": "sql",
+  "dto": "mapstruct",
+  "entityTableName": "recipe",
   "fields": [
     {
       "fieldName": "name",
@@ -37,13 +39,12 @@
       "fieldType": "String"
     }
   ],
-  "changelogDate": "20201017143434",
-  "dto": "mapstruct",
-  "searchEngine": "elasticsearch",
-  "service": "serviceClass",
-  "entityTableName": "recipe",
-  "databaseType": "sql",
-  "readOnly": false,
+  "fluentMethods": true,
   "jpaMetamodelFiltering": true,
-  "pagination": "infinite-scroll"
+  "name": "Recipe",
+  "pagination": "infinite-scroll",
+  "readOnly": false,
+  "relationships": [],
+  "searchEngine": "elasticsearch",
+  "service": "serviceClass"
 }

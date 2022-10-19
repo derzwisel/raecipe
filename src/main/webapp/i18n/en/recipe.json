@@ -3,6 +3,7 @@
     "recipe": {
       "home": {
         "title": "Recipes",
+        "refreshListLabel": "Refresh list",
         "createLabel": "Create a new Recipe",
         "createOrEditLabel": "Create or edit a Recipe",
         "search": "Search for Recipe",
@@ -17,6 +18,7 @@
       "detail": {
         "title": "Recipe"
       },
+      "id": "ID",
       "name": "Name",
       "starred": "Starred",
       "tags": "Tags",

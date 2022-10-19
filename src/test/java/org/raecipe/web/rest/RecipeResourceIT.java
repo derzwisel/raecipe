@@ -1,49 +1,48 @@
 package org.raecipe.web.rest;
 
-import org.raecipe.RaecipeApp;
-import org.raecipe.domain.Recipe;
-import org.raecipe.repository.RecipeRepository;
-import org.raecipe.repository.search.RecipeSearchRepository;
-import org.raecipe.service.RecipeService;
-import org.raecipe.service.dto.RecipeDTO;
-import org.raecipe.service.mapper.RecipeMapper;
-import org.raecipe.service.dto.RecipeCriteria;
-import org.raecipe.service.RecipeQueryService;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-import javax.persistence.EntityManager;
-import java.time.Duration;
-import java.util.Collections;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import javax.persistence.EntityManager;
+import org.apache.commons.collections4.IterableUtils;
+import org.assertj.core.util.IterableUtil;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.raecipe.IntegrationTest;
+import org.raecipe.domain.Recipe;
+import org.raecipe.repository.RecipeRepository;
+import org.raecipe.repository.search.RecipeSearchRepository;
+import org.raecipe.service.criteria.RecipeCriteria;
+import org.raecipe.service.dto.RecipeDTO;
+import org.raecipe.service.mapper.RecipeMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * Integration tests for the {@link RecipeResource} REST controller.
  */
-@SpringBootTest(classes = RaecipeApp.class)
-@ExtendWith(MockitoExtension.class)
+@IntegrationTest
 @AutoConfigureMockMvc
 @WithMockUser
-public class RecipeResourceIT {
+class RecipeResourceIT {
 
     private static final String DEFAULT_NAME = "AAAAAAAAAA";
     private static final String UPDATED_NAME = "BBBBBBBBBB";
@@ -70,6 +69,13 @@ public class RecipeResourceIT {
     private static final String DEFAULT_PICTURES = "AAAAAAAAAA";
     private static final String UPDATED_PICTURES = "BBBBBBBBBB";
 
+    private static final String ENTITY_API_URL = "/api/recipes";
+    private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
+    private static final String ENTITY_SEARCH_API_URL = "/api/_search/recipes";
+
+    private static Random random = new Random();
+    private static AtomicLong count = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
+
     @Autowired
     private RecipeRepository recipeRepository;
 
@@ -77,18 +83,7 @@ public class RecipeResourceIT {
     private RecipeMapper recipeMapper;
 
     @Autowired
-    private RecipeService recipeService;
-
-    /**
-     * This repository is mocked in the org.raecipe.repository.search test package.
-     *
-     * @see org.raecipe.repository.search.RecipeSearchRepositoryMockConfiguration
-     */
-    @Autowired
-    private RecipeSearchRepository mockRecipeSearchRepository;
-
-    @Autowired
-    private RecipeQueryService recipeQueryService;
+    private RecipeSearchRepository recipeSearchRepository;
 
     @Autowired
     private EntityManager em;
@@ -116,6 +111,7 @@ public class RecipeResourceIT {
             .pictures(DEFAULT_PICTURES);
         return recipe;
     }
+
     /**
      * Create an updated entity for this test.
      *
@@ -135,6 +131,12 @@ public class RecipeResourceIT {
         return recipe;
     }
 
+    @AfterEach
+    public void cleanupElasticSearchRepository() {
+        recipeSearchRepository.deleteAll();
+        assertThat(recipeSearchRepository.count()).isEqualTo(0);
+    }
+
     @BeforeEach
     public void initTest() {
         recipe = createEntity(em);
@@ -142,84 +144,87 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void createRecipe() throws Exception {
+    void createRecipe() throws Exception {
         int databaseSizeBeforeCreate = recipeRepository.findAll().size();
+        int searchDatabaseSizeBefore = IterableUtil.sizeOf(recipeSearchRepository.findAll());
         // Create the Recipe
         RecipeDTO recipeDTO = recipeMapper.toDto(recipe);
-        restRecipeMockMvc.perform(post("/api/recipes")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(recipeDTO)))
+        restRecipeMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(recipeDTO)))
             .andExpect(status().isCreated());
 
         // Validate the Recipe in the database
         List<Recipe> recipeList = recipeRepository.findAll();
         assertThat(recipeList).hasSize(databaseSizeBeforeCreate + 1);
+        await()
+            .atMost(5, TimeUnit.SECONDS)
+            .untilAsserted(() -> {
+                int searchDatabaseSizeAfter = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+                assertThat(searchDatabaseSizeAfter).isEqualTo(searchDatabaseSizeBefore + 1);
+            });
         Recipe testRecipe = recipeList.get(recipeList.size() - 1);
         assertThat(testRecipe.getName()).isEqualTo(DEFAULT_NAME);
-        assertThat(testRecipe.isStarred()).isEqualTo(DEFAULT_STARRED);
+        assertThat(testRecipe.getStarred()).isEqualTo(DEFAULT_STARRED);
         assertThat(testRecipe.getTags()).isEqualTo(DEFAULT_TAGS);
         assertThat(testRecipe.getIngredients()).isEqualTo(DEFAULT_INGREDIENTS);
         assertThat(testRecipe.getSteps()).isEqualTo(DEFAULT_STEPS);
         assertThat(testRecipe.getComment()).isEqualTo(DEFAULT_COMMENT);
         assertThat(testRecipe.getDuration()).isEqualTo(DEFAULT_DURATION);
         assertThat(testRecipe.getPictures()).isEqualTo(DEFAULT_PICTURES);
-
-        // Validate the Recipe in Elasticsearch
-        verify(mockRecipeSearchRepository, times(1)).save(testRecipe);
     }
 
     @Test
     @Transactional
-    public void createRecipeWithExistingId() throws Exception {
-        int databaseSizeBeforeCreate = recipeRepository.findAll().size();
-
+    void createRecipeWithExistingId() throws Exception {
         // Create the Recipe with an existing ID
         recipe.setId(1L);
         RecipeDTO recipeDTO = recipeMapper.toDto(recipe);
 
+        int databaseSizeBeforeCreate = recipeRepository.findAll().size();
+        int searchDatabaseSizeBefore = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+
         // An entity with an existing ID cannot be created, so this API call must fail
-        restRecipeMockMvc.perform(post("/api/recipes")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(recipeDTO)))
+        restRecipeMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(recipeDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Recipe in the database
         List<Recipe> recipeList = recipeRepository.findAll();
         assertThat(recipeList).hasSize(databaseSizeBeforeCreate);
-
-        // Validate the Recipe in Elasticsearch
-        verify(mockRecipeSearchRepository, times(0)).save(recipe);
+        int searchDatabaseSizeAfter = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        assertThat(searchDatabaseSizeAfter).isEqualTo(searchDatabaseSizeBefore);
     }
-
 
     @Test
     @Transactional
-    public void checkNameIsRequired() throws Exception {
+    void checkNameIsRequired() throws Exception {
         int databaseSizeBeforeTest = recipeRepository.findAll().size();
+        int searchDatabaseSizeBefore = IterableUtil.sizeOf(recipeSearchRepository.findAll());
         // set the field null
         recipe.setName(null);
 
         // Create the Recipe, which fails.
         RecipeDTO recipeDTO = recipeMapper.toDto(recipe);
 
-
-        restRecipeMockMvc.perform(post("/api/recipes")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(recipeDTO)))
+        restRecipeMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(recipeDTO)))
             .andExpect(status().isBadRequest());
 
         List<Recipe> recipeList = recipeRepository.findAll();
         assertThat(recipeList).hasSize(databaseSizeBeforeTest);
+        int searchDatabaseSizeAfter = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        assertThat(searchDatabaseSizeAfter).isEqualTo(searchDatabaseSizeBefore);
     }
 
     @Test
     @Transactional
-    public void getAllRecipes() throws Exception {
+    void getAllRecipes() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
         // Get all the recipeList
-        restRecipeMockMvc.perform(get("/api/recipes?sort=id,desc"))
+        restRecipeMockMvc
+            .perform(get(ENTITY_API_URL + "?sort=id,desc"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(recipe.getId().intValue())))
@@ -232,15 +237,16 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.[*].duration").value(hasItem(DEFAULT_DURATION.toString())))
             .andExpect(jsonPath("$.[*].pictures").value(hasItem(DEFAULT_PICTURES)));
     }
-    
+
     @Test
     @Transactional
-    public void getRecipe() throws Exception {
+    void getRecipe() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
         // Get the recipe
-        restRecipeMockMvc.perform(get("/api/recipes/{id}", recipe.getId()))
+        restRecipeMockMvc
+            .perform(get(ENTITY_API_URL_ID, recipe.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(recipe.getId().intValue()))
@@ -254,10 +260,9 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.pictures").value(DEFAULT_PICTURES));
     }
 
-
     @Test
     @Transactional
-    public void getRecipesByIdFiltering() throws Exception {
+    void getRecipesByIdFiltering() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -273,10 +278,9 @@ public class RecipeResourceIT {
         defaultRecipeShouldNotBeFound("id.lessThan=" + id);
     }
 
-
     @Test
     @Transactional
-    public void getAllRecipesByNameIsEqualToSomething() throws Exception {
+    void getAllRecipesByNameIsEqualToSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -289,20 +293,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByNameIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        recipeRepository.saveAndFlush(recipe);
-
-        // Get all the recipeList where name not equals to DEFAULT_NAME
-        defaultRecipeShouldNotBeFound("name.notEquals=" + DEFAULT_NAME);
-
-        // Get all the recipeList where name not equals to UPDATED_NAME
-        defaultRecipeShouldBeFound("name.notEquals=" + UPDATED_NAME);
-    }
-
-    @Test
-    @Transactional
-    public void getAllRecipesByNameIsInShouldWork() throws Exception {
+    void getAllRecipesByNameIsInShouldWork() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -315,7 +306,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByNameIsNullOrNotNull() throws Exception {
+    void getAllRecipesByNameIsNullOrNotNull() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -325,9 +316,10 @@ public class RecipeResourceIT {
         // Get all the recipeList where name is null
         defaultRecipeShouldNotBeFound("name.specified=false");
     }
-                @Test
+
+    @Test
     @Transactional
-    public void getAllRecipesByNameContainsSomething() throws Exception {
+    void getAllRecipesByNameContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -340,7 +332,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByNameNotContainsSomething() throws Exception {
+    void getAllRecipesByNameNotContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -351,10 +343,9 @@ public class RecipeResourceIT {
         defaultRecipeShouldBeFound("name.doesNotContain=" + UPDATED_NAME);
     }
 
-
     @Test
     @Transactional
-    public void getAllRecipesByStarredIsEqualToSomething() throws Exception {
+    void getAllRecipesByStarredIsEqualToSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -367,20 +358,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByStarredIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        recipeRepository.saveAndFlush(recipe);
-
-        // Get all the recipeList where starred not equals to DEFAULT_STARRED
-        defaultRecipeShouldNotBeFound("starred.notEquals=" + DEFAULT_STARRED);
-
-        // Get all the recipeList where starred not equals to UPDATED_STARRED
-        defaultRecipeShouldBeFound("starred.notEquals=" + UPDATED_STARRED);
-    }
-
-    @Test
-    @Transactional
-    public void getAllRecipesByStarredIsInShouldWork() throws Exception {
+    void getAllRecipesByStarredIsInShouldWork() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -393,7 +371,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByStarredIsNullOrNotNull() throws Exception {
+    void getAllRecipesByStarredIsNullOrNotNull() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -406,7 +384,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByTagsIsEqualToSomething() throws Exception {
+    void getAllRecipesByTagsIsEqualToSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -419,20 +397,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByTagsIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        recipeRepository.saveAndFlush(recipe);
-
-        // Get all the recipeList where tags not equals to DEFAULT_TAGS
-        defaultRecipeShouldNotBeFound("tags.notEquals=" + DEFAULT_TAGS);
-
-        // Get all the recipeList where tags not equals to UPDATED_TAGS
-        defaultRecipeShouldBeFound("tags.notEquals=" + UPDATED_TAGS);
-    }
-
-    @Test
-    @Transactional
-    public void getAllRecipesByTagsIsInShouldWork() throws Exception {
+    void getAllRecipesByTagsIsInShouldWork() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -445,7 +410,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByTagsIsNullOrNotNull() throws Exception {
+    void getAllRecipesByTagsIsNullOrNotNull() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -455,9 +420,10 @@ public class RecipeResourceIT {
         // Get all the recipeList where tags is null
         defaultRecipeShouldNotBeFound("tags.specified=false");
     }
-                @Test
+
+    @Test
     @Transactional
-    public void getAllRecipesByTagsContainsSomething() throws Exception {
+    void getAllRecipesByTagsContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -470,7 +436,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByTagsNotContainsSomething() throws Exception {
+    void getAllRecipesByTagsNotContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -481,10 +447,9 @@ public class RecipeResourceIT {
         defaultRecipeShouldBeFound("tags.doesNotContain=" + UPDATED_TAGS);
     }
 
-
     @Test
     @Transactional
-    public void getAllRecipesByIngredientsIsEqualToSomething() throws Exception {
+    void getAllRecipesByIngredientsIsEqualToSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -497,20 +462,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByIngredientsIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        recipeRepository.saveAndFlush(recipe);
-
-        // Get all the recipeList where ingredients not equals to DEFAULT_INGREDIENTS
-        defaultRecipeShouldNotBeFound("ingredients.notEquals=" + DEFAULT_INGREDIENTS);
-
-        // Get all the recipeList where ingredients not equals to UPDATED_INGREDIENTS
-        defaultRecipeShouldBeFound("ingredients.notEquals=" + UPDATED_INGREDIENTS);
-    }
-
-    @Test
-    @Transactional
-    public void getAllRecipesByIngredientsIsInShouldWork() throws Exception {
+    void getAllRecipesByIngredientsIsInShouldWork() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -523,7 +475,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByIngredientsIsNullOrNotNull() throws Exception {
+    void getAllRecipesByIngredientsIsNullOrNotNull() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -533,9 +485,10 @@ public class RecipeResourceIT {
         // Get all the recipeList where ingredients is null
         defaultRecipeShouldNotBeFound("ingredients.specified=false");
     }
-                @Test
+
+    @Test
     @Transactional
-    public void getAllRecipesByIngredientsContainsSomething() throws Exception {
+    void getAllRecipesByIngredientsContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -548,7 +501,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByIngredientsNotContainsSomething() throws Exception {
+    void getAllRecipesByIngredientsNotContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -559,10 +512,9 @@ public class RecipeResourceIT {
         defaultRecipeShouldBeFound("ingredients.doesNotContain=" + UPDATED_INGREDIENTS);
     }
 
-
     @Test
     @Transactional
-    public void getAllRecipesByStepsIsEqualToSomething() throws Exception {
+    void getAllRecipesByStepsIsEqualToSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -575,20 +527,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByStepsIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        recipeRepository.saveAndFlush(recipe);
-
-        // Get all the recipeList where steps not equals to DEFAULT_STEPS
-        defaultRecipeShouldNotBeFound("steps.notEquals=" + DEFAULT_STEPS);
-
-        // Get all the recipeList where steps not equals to UPDATED_STEPS
-        defaultRecipeShouldBeFound("steps.notEquals=" + UPDATED_STEPS);
-    }
-
-    @Test
-    @Transactional
-    public void getAllRecipesByStepsIsInShouldWork() throws Exception {
+    void getAllRecipesByStepsIsInShouldWork() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -601,7 +540,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByStepsIsNullOrNotNull() throws Exception {
+    void getAllRecipesByStepsIsNullOrNotNull() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -611,9 +550,10 @@ public class RecipeResourceIT {
         // Get all the recipeList where steps is null
         defaultRecipeShouldNotBeFound("steps.specified=false");
     }
-                @Test
+
+    @Test
     @Transactional
-    public void getAllRecipesByStepsContainsSomething() throws Exception {
+    void getAllRecipesByStepsContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -626,7 +566,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByStepsNotContainsSomething() throws Exception {
+    void getAllRecipesByStepsNotContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -637,10 +577,9 @@ public class RecipeResourceIT {
         defaultRecipeShouldBeFound("steps.doesNotContain=" + UPDATED_STEPS);
     }
 
-
     @Test
     @Transactional
-    public void getAllRecipesByCommentIsEqualToSomething() throws Exception {
+    void getAllRecipesByCommentIsEqualToSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -653,20 +592,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByCommentIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        recipeRepository.saveAndFlush(recipe);
-
-        // Get all the recipeList where comment not equals to DEFAULT_COMMENT
-        defaultRecipeShouldNotBeFound("comment.notEquals=" + DEFAULT_COMMENT);
-
-        // Get all the recipeList where comment not equals to UPDATED_COMMENT
-        defaultRecipeShouldBeFound("comment.notEquals=" + UPDATED_COMMENT);
-    }
-
-    @Test
-    @Transactional
-    public void getAllRecipesByCommentIsInShouldWork() throws Exception {
+    void getAllRecipesByCommentIsInShouldWork() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -679,7 +605,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByCommentIsNullOrNotNull() throws Exception {
+    void getAllRecipesByCommentIsNullOrNotNull() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -689,9 +615,10 @@ public class RecipeResourceIT {
         // Get all the recipeList where comment is null
         defaultRecipeShouldNotBeFound("comment.specified=false");
     }
-                @Test
+
+    @Test
     @Transactional
-    public void getAllRecipesByCommentContainsSomething() throws Exception {
+    void getAllRecipesByCommentContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -704,7 +631,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByCommentNotContainsSomething() throws Exception {
+    void getAllRecipesByCommentNotContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -715,10 +642,9 @@ public class RecipeResourceIT {
         defaultRecipeShouldBeFound("comment.doesNotContain=" + UPDATED_COMMENT);
     }
 
-
     @Test
     @Transactional
-    public void getAllRecipesByDurationIsEqualToSomething() throws Exception {
+    void getAllRecipesByDurationIsEqualToSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -731,20 +657,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByDurationIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        recipeRepository.saveAndFlush(recipe);
-
-        // Get all the recipeList where duration not equals to DEFAULT_DURATION
-        defaultRecipeShouldNotBeFound("duration.notEquals=" + DEFAULT_DURATION);
-
-        // Get all the recipeList where duration not equals to UPDATED_DURATION
-        defaultRecipeShouldBeFound("duration.notEquals=" + UPDATED_DURATION);
-    }
-
-    @Test
-    @Transactional
-    public void getAllRecipesByDurationIsInShouldWork() throws Exception {
+    void getAllRecipesByDurationIsInShouldWork() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -757,7 +670,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByDurationIsNullOrNotNull() throws Exception {
+    void getAllRecipesByDurationIsNullOrNotNull() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -770,7 +683,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByDurationIsGreaterThanOrEqualToSomething() throws Exception {
+    void getAllRecipesByDurationIsGreaterThanOrEqualToSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -783,7 +696,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByDurationIsLessThanOrEqualToSomething() throws Exception {
+    void getAllRecipesByDurationIsLessThanOrEqualToSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -796,7 +709,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByDurationIsLessThanSomething() throws Exception {
+    void getAllRecipesByDurationIsLessThanSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -809,7 +722,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByDurationIsGreaterThanSomething() throws Exception {
+    void getAllRecipesByDurationIsGreaterThanSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -820,10 +733,9 @@ public class RecipeResourceIT {
         defaultRecipeShouldBeFound("duration.greaterThan=" + SMALLER_DURATION);
     }
 
-
     @Test
     @Transactional
-    public void getAllRecipesByPicturesIsEqualToSomething() throws Exception {
+    void getAllRecipesByPicturesIsEqualToSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -836,20 +748,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByPicturesIsNotEqualToSomething() throws Exception {
-        // Initialize the database
-        recipeRepository.saveAndFlush(recipe);
-
-        // Get all the recipeList where pictures not equals to DEFAULT_PICTURES
-        defaultRecipeShouldNotBeFound("pictures.notEquals=" + DEFAULT_PICTURES);
-
-        // Get all the recipeList where pictures not equals to UPDATED_PICTURES
-        defaultRecipeShouldBeFound("pictures.notEquals=" + UPDATED_PICTURES);
-    }
-
-    @Test
-    @Transactional
-    public void getAllRecipesByPicturesIsInShouldWork() throws Exception {
+    void getAllRecipesByPicturesIsInShouldWork() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -862,7 +761,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByPicturesIsNullOrNotNull() throws Exception {
+    void getAllRecipesByPicturesIsNullOrNotNull() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -872,9 +771,10 @@ public class RecipeResourceIT {
         // Get all the recipeList where pictures is null
         defaultRecipeShouldNotBeFound("pictures.specified=false");
     }
-                @Test
+
+    @Test
     @Transactional
-    public void getAllRecipesByPicturesContainsSomething() throws Exception {
+    void getAllRecipesByPicturesContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -887,7 +787,7 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getAllRecipesByPicturesNotContainsSomething() throws Exception {
+    void getAllRecipesByPicturesNotContainsSomething() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
@@ -902,7 +802,8 @@ public class RecipeResourceIT {
      * Executes the search, and checks that the default entity is returned.
      */
     private void defaultRecipeShouldBeFound(String filter) throws Exception {
-        restRecipeMockMvc.perform(get("/api/recipes?sort=id,desc&" + filter))
+        restRecipeMockMvc
+            .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(recipe.getId().intValue())))
@@ -916,7 +817,8 @@ public class RecipeResourceIT {
             .andExpect(jsonPath("$.[*].pictures").value(hasItem(DEFAULT_PICTURES)));
 
         // Check, that the count call also returns 1
-        restRecipeMockMvc.perform(get("/api/recipes/count?sort=id,desc&" + filter))
+        restRecipeMockMvc
+            .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("1"));
@@ -926,14 +828,16 @@ public class RecipeResourceIT {
      * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultRecipeShouldNotBeFound(String filter) throws Exception {
-        restRecipeMockMvc.perform(get("/api/recipes?sort=id,desc&" + filter))
+        restRecipeMockMvc
+            .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
-        restRecipeMockMvc.perform(get("/api/recipes/count?sort=id,desc&" + filter))
+        restRecipeMockMvc
+            .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("0"));
@@ -941,19 +845,20 @@ public class RecipeResourceIT {
 
     @Test
     @Transactional
-    public void getNonExistingRecipe() throws Exception {
+    void getNonExistingRecipe() throws Exception {
         // Get the recipe
-        restRecipeMockMvc.perform(get("/api/recipes/{id}", Long.MAX_VALUE))
-            .andExpect(status().isNotFound());
+        restRecipeMockMvc.perform(get(ENTITY_API_URL_ID, Long.MAX_VALUE)).andExpect(status().isNotFound());
     }
 
     @Test
     @Transactional
-    public void updateRecipe() throws Exception {
+    void putExistingRecipe() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
         int databaseSizeBeforeUpdate = recipeRepository.findAll().size();
+        recipeSearchRepository.save(recipe);
+        int searchDatabaseSizeBefore = IterableUtil.sizeOf(recipeSearchRepository.findAll());
 
         // Update the recipe
         Recipe updatedRecipe = recipeRepository.findById(recipe.getId()).get();
@@ -970,9 +875,12 @@ public class RecipeResourceIT {
             .pictures(UPDATED_PICTURES);
         RecipeDTO recipeDTO = recipeMapper.toDto(updatedRecipe);
 
-        restRecipeMockMvc.perform(put("/api/recipes")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(recipeDTO)))
+        restRecipeMockMvc
+            .perform(
+                put(ENTITY_API_URL_ID, recipeDTO.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(TestUtil.convertObjectToJsonBytes(recipeDTO))
+            )
             .andExpect(status().isOk());
 
         // Validate the Recipe in the database
@@ -980,72 +888,295 @@ public class RecipeResourceIT {
         assertThat(recipeList).hasSize(databaseSizeBeforeUpdate);
         Recipe testRecipe = recipeList.get(recipeList.size() - 1);
         assertThat(testRecipe.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testRecipe.isStarred()).isEqualTo(UPDATED_STARRED);
+        assertThat(testRecipe.getStarred()).isEqualTo(UPDATED_STARRED);
         assertThat(testRecipe.getTags()).isEqualTo(UPDATED_TAGS);
         assertThat(testRecipe.getIngredients()).isEqualTo(UPDATED_INGREDIENTS);
         assertThat(testRecipe.getSteps()).isEqualTo(UPDATED_STEPS);
         assertThat(testRecipe.getComment()).isEqualTo(UPDATED_COMMENT);
         assertThat(testRecipe.getDuration()).isEqualTo(UPDATED_DURATION);
         assertThat(testRecipe.getPictures()).isEqualTo(UPDATED_PICTURES);
-
-        // Validate the Recipe in Elasticsearch
-        verify(mockRecipeSearchRepository, times(1)).save(testRecipe);
+        await()
+            .atMost(5, TimeUnit.SECONDS)
+            .untilAsserted(() -> {
+                int searchDatabaseSizeAfter = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+                assertThat(searchDatabaseSizeAfter).isEqualTo(searchDatabaseSizeBefore);
+                List<Recipe> recipeSearchList = IterableUtils.toList(recipeSearchRepository.findAll());
+                Recipe testRecipeSearch = recipeSearchList.get(searchDatabaseSizeAfter - 1);
+                assertThat(testRecipeSearch.getName()).isEqualTo(UPDATED_NAME);
+                assertThat(testRecipeSearch.getStarred()).isEqualTo(UPDATED_STARRED);
+                assertThat(testRecipeSearch.getTags()).isEqualTo(UPDATED_TAGS);
+                assertThat(testRecipeSearch.getIngredients()).isEqualTo(UPDATED_INGREDIENTS);
+                assertThat(testRecipeSearch.getSteps()).isEqualTo(UPDATED_STEPS);
+                assertThat(testRecipeSearch.getComment()).isEqualTo(UPDATED_COMMENT);
+                assertThat(testRecipeSearch.getDuration()).isEqualTo(UPDATED_DURATION);
+                assertThat(testRecipeSearch.getPictures()).isEqualTo(UPDATED_PICTURES);
+            });
     }
 
     @Test
     @Transactional
-    public void updateNonExistingRecipe() throws Exception {
+    void putNonExistingRecipe() throws Exception {
         int databaseSizeBeforeUpdate = recipeRepository.findAll().size();
+        int searchDatabaseSizeBefore = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        recipe.setId(count.incrementAndGet());
 
         // Create the Recipe
         RecipeDTO recipeDTO = recipeMapper.toDto(recipe);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restRecipeMockMvc.perform(put("/api/recipes")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(recipeDTO)))
+        restRecipeMockMvc
+            .perform(
+                put(ENTITY_API_URL_ID, recipeDTO.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(TestUtil.convertObjectToJsonBytes(recipeDTO))
+            )
             .andExpect(status().isBadRequest());
 
         // Validate the Recipe in the database
         List<Recipe> recipeList = recipeRepository.findAll();
         assertThat(recipeList).hasSize(databaseSizeBeforeUpdate);
-
-        // Validate the Recipe in Elasticsearch
-        verify(mockRecipeSearchRepository, times(0)).save(recipe);
+        int searchDatabaseSizeAfter = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        assertThat(searchDatabaseSizeAfter).isEqualTo(searchDatabaseSizeBefore);
     }
 
     @Test
     @Transactional
-    public void deleteRecipe() throws Exception {
+    void putWithIdMismatchRecipe() throws Exception {
+        int databaseSizeBeforeUpdate = recipeRepository.findAll().size();
+        int searchDatabaseSizeBefore = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        recipe.setId(count.incrementAndGet());
+
+        // Create the Recipe
+        RecipeDTO recipeDTO = recipeMapper.toDto(recipe);
+
+        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+        restRecipeMockMvc
+            .perform(
+                put(ENTITY_API_URL_ID, count.incrementAndGet())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(TestUtil.convertObjectToJsonBytes(recipeDTO))
+            )
+            .andExpect(status().isBadRequest());
+
+        // Validate the Recipe in the database
+        List<Recipe> recipeList = recipeRepository.findAll();
+        assertThat(recipeList).hasSize(databaseSizeBeforeUpdate);
+        int searchDatabaseSizeAfter = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        assertThat(searchDatabaseSizeAfter).isEqualTo(searchDatabaseSizeBefore);
+    }
+
+    @Test
+    @Transactional
+    void putWithMissingIdPathParamRecipe() throws Exception {
+        int databaseSizeBeforeUpdate = recipeRepository.findAll().size();
+        int searchDatabaseSizeBefore = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        recipe.setId(count.incrementAndGet());
+
+        // Create the Recipe
+        RecipeDTO recipeDTO = recipeMapper.toDto(recipe);
+
+        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+        restRecipeMockMvc
+            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(recipeDTO)))
+            .andExpect(status().isMethodNotAllowed());
+
+        // Validate the Recipe in the database
+        List<Recipe> recipeList = recipeRepository.findAll();
+        assertThat(recipeList).hasSize(databaseSizeBeforeUpdate);
+        int searchDatabaseSizeAfter = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        assertThat(searchDatabaseSizeAfter).isEqualTo(searchDatabaseSizeBefore);
+    }
+
+    @Test
+    @Transactional
+    void partialUpdateRecipeWithPatch() throws Exception {
         // Initialize the database
         recipeRepository.saveAndFlush(recipe);
 
+        int databaseSizeBeforeUpdate = recipeRepository.findAll().size();
+
+        // Update the recipe using partial update
+        Recipe partialUpdatedRecipe = new Recipe();
+        partialUpdatedRecipe.setId(recipe.getId());
+
+        partialUpdatedRecipe.name(UPDATED_NAME).starred(UPDATED_STARRED);
+
+        restRecipeMockMvc
+            .perform(
+                patch(ENTITY_API_URL_ID, partialUpdatedRecipe.getId())
+                    .contentType("application/merge-patch+json")
+                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedRecipe))
+            )
+            .andExpect(status().isOk());
+
+        // Validate the Recipe in the database
+        List<Recipe> recipeList = recipeRepository.findAll();
+        assertThat(recipeList).hasSize(databaseSizeBeforeUpdate);
+        Recipe testRecipe = recipeList.get(recipeList.size() - 1);
+        assertThat(testRecipe.getName()).isEqualTo(UPDATED_NAME);
+        assertThat(testRecipe.getStarred()).isEqualTo(UPDATED_STARRED);
+        assertThat(testRecipe.getTags()).isEqualTo(DEFAULT_TAGS);
+        assertThat(testRecipe.getIngredients()).isEqualTo(DEFAULT_INGREDIENTS);
+        assertThat(testRecipe.getSteps()).isEqualTo(DEFAULT_STEPS);
+        assertThat(testRecipe.getComment()).isEqualTo(DEFAULT_COMMENT);
+        assertThat(testRecipe.getDuration()).isEqualTo(DEFAULT_DURATION);
+        assertThat(testRecipe.getPictures()).isEqualTo(DEFAULT_PICTURES);
+    }
+
+    @Test
+    @Transactional
+    void fullUpdateRecipeWithPatch() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+
+        int databaseSizeBeforeUpdate = recipeRepository.findAll().size();
+
+        // Update the recipe using partial update
+        Recipe partialUpdatedRecipe = new Recipe();
+        partialUpdatedRecipe.setId(recipe.getId());
+
+        partialUpdatedRecipe
+            .name(UPDATED_NAME)
+            .starred(UPDATED_STARRED)
+            .tags(UPDATED_TAGS)
+            .ingredients(UPDATED_INGREDIENTS)
+            .steps(UPDATED_STEPS)
+            .comment(UPDATED_COMMENT)
+            .duration(UPDATED_DURATION)
+            .pictures(UPDATED_PICTURES);
+
+        restRecipeMockMvc
+            .perform(
+                patch(ENTITY_API_URL_ID, partialUpdatedRecipe.getId())
+                    .contentType("application/merge-patch+json")
+                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedRecipe))
+            )
+            .andExpect(status().isOk());
+
+        // Validate the Recipe in the database
+        List<Recipe> recipeList = recipeRepository.findAll();
+        assertThat(recipeList).hasSize(databaseSizeBeforeUpdate);
+        Recipe testRecipe = recipeList.get(recipeList.size() - 1);
+        assertThat(testRecipe.getName()).isEqualTo(UPDATED_NAME);
+        assertThat(testRecipe.getStarred()).isEqualTo(UPDATED_STARRED);
+        assertThat(testRecipe.getTags()).isEqualTo(UPDATED_TAGS);
+        assertThat(testRecipe.getIngredients()).isEqualTo(UPDATED_INGREDIENTS);
+        assertThat(testRecipe.getSteps()).isEqualTo(UPDATED_STEPS);
+        assertThat(testRecipe.getComment()).isEqualTo(UPDATED_COMMENT);
+        assertThat(testRecipe.getDuration()).isEqualTo(UPDATED_DURATION);
+        assertThat(testRecipe.getPictures()).isEqualTo(UPDATED_PICTURES);
+    }
+
+    @Test
+    @Transactional
+    void patchNonExistingRecipe() throws Exception {
+        int databaseSizeBeforeUpdate = recipeRepository.findAll().size();
+        int searchDatabaseSizeBefore = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        recipe.setId(count.incrementAndGet());
+
+        // Create the Recipe
+        RecipeDTO recipeDTO = recipeMapper.toDto(recipe);
+
+        // If the entity doesn't have an ID, it will throw BadRequestAlertException
+        restRecipeMockMvc
+            .perform(
+                patch(ENTITY_API_URL_ID, recipeDTO.getId())
+                    .contentType("application/merge-patch+json")
+                    .content(TestUtil.convertObjectToJsonBytes(recipeDTO))
+            )
+            .andExpect(status().isBadRequest());
+
+        // Validate the Recipe in the database
+        List<Recipe> recipeList = recipeRepository.findAll();
+        assertThat(recipeList).hasSize(databaseSizeBeforeUpdate);
+        int searchDatabaseSizeAfter = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        assertThat(searchDatabaseSizeAfter).isEqualTo(searchDatabaseSizeBefore);
+    }
+
+    @Test
+    @Transactional
+    void patchWithIdMismatchRecipe() throws Exception {
+        int databaseSizeBeforeUpdate = recipeRepository.findAll().size();
+        int searchDatabaseSizeBefore = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        recipe.setId(count.incrementAndGet());
+
+        // Create the Recipe
+        RecipeDTO recipeDTO = recipeMapper.toDto(recipe);
+
+        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+        restRecipeMockMvc
+            .perform(
+                patch(ENTITY_API_URL_ID, count.incrementAndGet())
+                    .contentType("application/merge-patch+json")
+                    .content(TestUtil.convertObjectToJsonBytes(recipeDTO))
+            )
+            .andExpect(status().isBadRequest());
+
+        // Validate the Recipe in the database
+        List<Recipe> recipeList = recipeRepository.findAll();
+        assertThat(recipeList).hasSize(databaseSizeBeforeUpdate);
+        int searchDatabaseSizeAfter = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        assertThat(searchDatabaseSizeAfter).isEqualTo(searchDatabaseSizeBefore);
+    }
+
+    @Test
+    @Transactional
+    void patchWithMissingIdPathParamRecipe() throws Exception {
+        int databaseSizeBeforeUpdate = recipeRepository.findAll().size();
+        int searchDatabaseSizeBefore = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        recipe.setId(count.incrementAndGet());
+
+        // Create the Recipe
+        RecipeDTO recipeDTO = recipeMapper.toDto(recipe);
+
+        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+        restRecipeMockMvc
+            .perform(
+                patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(recipeDTO))
+            )
+            .andExpect(status().isMethodNotAllowed());
+
+        // Validate the Recipe in the database
+        List<Recipe> recipeList = recipeRepository.findAll();
+        assertThat(recipeList).hasSize(databaseSizeBeforeUpdate);
+        int searchDatabaseSizeAfter = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        assertThat(searchDatabaseSizeAfter).isEqualTo(searchDatabaseSizeBefore);
+    }
+
+    @Test
+    @Transactional
+    void deleteRecipe() throws Exception {
+        // Initialize the database
+        recipeRepository.saveAndFlush(recipe);
+        recipeRepository.save(recipe);
+        recipeSearchRepository.save(recipe);
+
         int databaseSizeBeforeDelete = recipeRepository.findAll().size();
+        int searchDatabaseSizeBefore = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        assertThat(searchDatabaseSizeBefore).isEqualTo(databaseSizeBeforeDelete);
 
         // Delete the recipe
-        restRecipeMockMvc.perform(delete("/api/recipes/{id}", recipe.getId())
-            .accept(MediaType.APPLICATION_JSON))
+        restRecipeMockMvc
+            .perform(delete(ENTITY_API_URL_ID, recipe.getId()).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
         List<Recipe> recipeList = recipeRepository.findAll();
         assertThat(recipeList).hasSize(databaseSizeBeforeDelete - 1);
-
-        // Validate the Recipe in Elasticsearch
-        verify(mockRecipeSearchRepository, times(1)).deleteById(recipe.getId());
+        int searchDatabaseSizeAfter = IterableUtil.sizeOf(recipeSearchRepository.findAll());
+        assertThat(searchDatabaseSizeAfter).isEqualTo(searchDatabaseSizeBefore - 1);
     }
 
     @Test
     @Transactional
-    public void searchRecipe() throws Exception {
-        // Configure the mock search repository
+    void searchRecipe() throws Exception {
         // Initialize the database
-        recipeRepository.saveAndFlush(recipe);
-        when(mockRecipeSearchRepository.search(queryStringQuery("id:" + recipe.getId()), PageRequest.of(0, 20)))
-            .thenReturn(new PageImpl<>(Collections.singletonList(recipe), PageRequest.of(0, 1), 1));
+        recipe = recipeRepository.saveAndFlush(recipe);
+        recipeSearchRepository.save(recipe);
 
         // Search the recipe
-        restRecipeMockMvc.perform(get("/api/_search/recipes?query=id:" + recipe.getId()))
+        restRecipeMockMvc
+            .perform(get(ENTITY_SEARCH_API_URL + "?query=id:" + recipe.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(recipe.getId().intValue())))

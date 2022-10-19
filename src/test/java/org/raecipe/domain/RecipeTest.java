@@ -1,13 +1,14 @@
 package org.raecipe.domain;
 
-import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 import org.raecipe.web.rest.TestUtil;
 
-public class RecipeTest {
+class RecipeTest {
 
     @Test
-    public void equalsVerifier() throws Exception {
+    void equalsVerifier() throws Exception {
         TestUtil.equalsVerifier(Recipe.class);
         Recipe recipe1 = new Recipe();
         recipe1.setId(1L);

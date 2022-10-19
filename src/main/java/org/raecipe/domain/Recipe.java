@@ -1,14 +1,11 @@
 package org.raecipe.domain;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
-import javax.persistence.*;
-import javax.validation.constraints.*;
-
-import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.io.Serializable;
 import java.time.Duration;
+import javax.persistence.*;
+import javax.validation.constraints.*;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
  * A Recipe.
@@ -17,6 +14,7 @@ import java.time.Duration;
 @Table(name = "recipe")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @org.springframework.data.elasticsearch.annotations.Document(indexName = "recipe")
+@SuppressWarnings("common-java:DuplicatedBlocks")
 public class Recipe implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -24,6 +22,7 @@ public class Recipe implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
+    @Column(name = "id")
     private Long id;
 
     @NotNull
@@ -52,8 +51,14 @@ public class Recipe implements Serializable {
     private String pictures;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
+
     public Long getId() {
-        return id;
+        return this.id;
+    }
+
+    public Recipe id(Long id) {
+        this.setId(id);
+        return this;
     }
 
     public void setId(Long id) {
@@ -61,11 +66,11 @@ public class Recipe implements Serializable {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public Recipe name(String name) {
-        this.name = name;
+        this.setName(name);
         return this;
     }
 
@@ -73,12 +78,12 @@ public class Recipe implements Serializable {
         this.name = name;
     }
 
-    public Boolean isStarred() {
-        return starred;
+    public Boolean getStarred() {
+        return this.starred;
     }
 
     public Recipe starred(Boolean starred) {
-        this.starred = starred;
+        this.setStarred(starred);
         return this;
     }
 
@@ -87,11 +92,11 @@ public class Recipe implements Serializable {
     }
 
     public String getTags() {
-        return tags;
+        return this.tags;
     }
 
     public Recipe tags(String tags) {
-        this.tags = tags;
+        this.setTags(tags);
         return this;
     }
 
@@ -100,11 +105,11 @@ public class Recipe implements Serializable {
     }
 
     public String getIngredients() {
-        return ingredients;
+        return this.ingredients;
     }
 
     public Recipe ingredients(String ingredients) {
-        this.ingredients = ingredients;
+        this.setIngredients(ingredients);
         return this;
     }
 
@@ -113,11 +118,11 @@ public class Recipe implements Serializable {
     }
 
     public String getSteps() {
-        return steps;
+        return this.steps;
     }
 
     public Recipe steps(String steps) {
-        this.steps = steps;
+        this.setSteps(steps);
         return this;
     }
 
@@ -126,11 +131,11 @@ public class Recipe implements Serializable {
     }
 
     public String getComment() {
-        return comment;
+        return this.comment;
     }
 
     public Recipe comment(String comment) {
-        this.comment = comment;
+        this.setComment(comment);
         return this;
     }
 
@@ -139,11 +144,11 @@ public class Recipe implements Serializable {
     }
 
     public Duration getDuration() {
-        return duration;
+        return this.duration;
     }
 
     public Recipe duration(Duration duration) {
-        this.duration = duration;
+        this.setDuration(duration);
         return this;
     }
 
@@ -152,17 +157,18 @@ public class Recipe implements Serializable {
     }
 
     public String getPictures() {
-        return pictures;
+        return this.pictures;
     }
 
     public Recipe pictures(String pictures) {
-        this.pictures = pictures;
+        this.setPictures(pictures);
         return this;
     }
 
     public void setPictures(String pictures) {
         this.pictures = pictures;
     }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -178,7 +184,8 @@ public class Recipe implements Serializable {
 
     @Override
     public int hashCode() {
-        return 31;
+        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        return getClass().hashCode();
     }
 
     // prettier-ignore
@@ -187,7 +194,7 @@ public class Recipe implements Serializable {
         return "Recipe{" +
             "id=" + getId() +
             ", name='" + getName() + "'" +
-            ", starred='" + isStarred() + "'" +
+            ", starred='" + getStarred() + "'" +
             ", tags='" + getTags() + "'" +
             ", ingredients='" + getIngredients() + "'" +
             ", steps='" + getSteps() + "'" +

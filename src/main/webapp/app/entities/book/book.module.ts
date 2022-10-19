@@ -1,16 +1,13 @@
 import { NgModule } from '@angular/core';
-import { RouterModule } from '@angular/router';
-
-import { RaecipeSharedModule } from 'app/shared/shared.module';
-import { BookComponent } from './book.component';
-import { BookDetailComponent } from './book-detail.component';
-import { BookUpdateComponent } from './book-update.component';
-import { BookDeleteDialogComponent } from './book-delete-dialog.component';
-import { bookRoute } from './book.route';
+import { SharedModule } from 'app/shared/shared.module';
+import { BookComponent } from './list/book.component';
+import { BookDetailComponent } from './detail/book-detail.component';
+import { BookUpdateComponent } from './update/book-update.component';
+import { BookDeleteDialogComponent } from './delete/book-delete-dialog.component';
+import { BookRoutingModule } from './route/book-routing.module';
 
 @NgModule({
-  imports: [RaecipeSharedModule, RouterModule.forChild(bookRoute)],
+  imports: [SharedModule, BookRoutingModule],
   declarations: [BookComponent, BookDetailComponent, BookUpdateComponent, BookDeleteDialogComponent],
-  entryComponents: [BookDeleteDialogComponent],
 })
-export class RaecipeBookModule {}
+export class BookModule {}
