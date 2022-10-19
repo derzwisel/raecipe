@@ -6,18 +6,21 @@
 
     <logger name="org.raecipe" level="INFO"/>
 
-    <logger name="io.github.jhipster" level="WARN"/>
+    <logger name="tech.jhipster" level="WARN"/>
+
+    <!-- https://www.testcontainers.org/supported_docker_environment/logging_config/ -->
+    <logger name="org.testcontainers" level="INFO"/>
+    <logger name="com.github.dockerjava" level="WARN"/>
 
     <logger name="javax.activation" level="WARN"/>
     <logger name="javax.mail" level="WARN"/>
     <logger name="javax.xml.bind" level="WARN"/>
     <logger name="ch.qos.logback" level="WARN"/>
+    <logger name="com.jayway.jsonpath" level="WARN"/>
     <logger name="com.ryantenney" level="WARN"/>
     <logger name="com.sun" level="WARN"/>
     <logger name="com.zaxxer" level="WARN"/>
     <logger name="io.searchbox" level="WARN"/>
-    <logger name="com.github.dockerjava" level="WARN"/>
-    <logger name="org.testcontainers" level="WARN"/>
     <logger name="io.undertow" level="WARN"/>
     <logger name="io.undertow.websockets.jsr" level="ERROR"/>
     <logger name="org.ehcache" level="WARN"/>
@@ -37,7 +40,7 @@
     <logger name="org.xnio" level="WARN"/>
     <logger name="kafka" level="WARN"/>
     <logger name="org.I0Itec" level="WARN"/>
-    <logger name="springfox" level="WARN"/>
+    <logger name="io.swagger.v3" level="INFO"/>
     <logger name="sun.rmi" level="WARN"/>
     <logger name="liquibase" level="WARN"/>
     <logger name="LiquibaseSchemaResolver" level="INFO"/>

@@ -1,13 +1,14 @@
 package org.raecipe.service.dto;
 
-import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 import org.raecipe.web.rest.TestUtil;
 
-public class BookDTOTest {
+class BookDTOTest {
 
     @Test
-    public void dtoEqualsVerifier() throws Exception {
+    void dtoEqualsVerifier() throws Exception {
         TestUtil.equalsVerifier(BookDTO.class);
         BookDTO bookDTO1 = new BookDTO();
         bookDTO1.setId(1L);

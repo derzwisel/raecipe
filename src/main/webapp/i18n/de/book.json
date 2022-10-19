@@ -3,10 +3,11 @@
     "book": {
       "home": {
         "title": "Books",
+        "refreshListLabel": "Liste aktualisieren",
         "createLabel": "Book erstellen",
         "createOrEditLabel": "Book erstellen oder bearbeiten",
         "search": "Suche nach Book",
-        "notFound": "No Books found"
+        "notFound": "Keine Books gefunden"
       },
       "created": "Book erstellt mit ID {{ param }}",
       "updated": "Book aktualisiert mit ID {{ param }}",
@@ -17,6 +18,7 @@
       "detail": {
         "title": "Book"
       },
+      "id": "ID",
       "name": "Name",
       "published": "Published",
       "recipe": "Recipe"

@@ -3,10 +3,9 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
                         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
-    
     <!--
         Added the entity Recipe.
     -->
@@ -43,9 +42,6 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="20201017143434-1-relations" author="jhipster">
-
-    </changeSet>
     <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here -->
 
     <!--
@@ -60,7 +56,8 @@
         <loadData
                   file="config/liquibase/fake-data/recipe.csv"
                   separator=";"
-                  tableName="recipe">
+                  tableName="recipe"
+                  usePreparedStatements="true">
             <column name="id" type="numeric"/>
             <column name="name" type="string"/>
             <column name="starred" type="boolean"/>
@@ -73,5 +70,4 @@
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>
     </changeSet>
-
 </databaseChangeLog>

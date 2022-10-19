@@ -3,10 +3,11 @@
     "recipe": {
       "home": {
         "title": "Recipes",
+        "refreshListLabel": "Liste aktualisieren",
         "createLabel": "Recipe erstellen",
         "createOrEditLabel": "Recipe erstellen oder bearbeiten",
         "search": "Suche nach Recipe",
-        "notFound": "No Recipes found"
+        "notFound": "Keine Recipes gefunden"
       },
       "created": "Recipe erstellt mit ID {{ param }}",
       "updated": "Recipe aktualisiert mit ID {{ param }}",
@@ -17,6 +18,7 @@
       "detail": {
         "title": "Recipe"
       },
+      "id": "ID",
       "name": "Name",
       "starred": "Starred",
       "tags": "Tags",

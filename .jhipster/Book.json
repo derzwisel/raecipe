@@ -1,16 +1,9 @@
 {
-  "fluentMethods": true,
+  "changelogDate": "20201017190442",
   "clientRootFolder": "",
-  "relationships": [
-    {
-      "relationshipName": "recipe",
-      "otherEntityName": "recipe",
-      "relationshipType": "many-to-many",
-      "otherEntityField": "name",
-      "ownerSide": true,
-      "otherEntityRelationshipName": "book"
-    }
-  ],
+  "databaseType": "sql",
+  "dto": "mapstruct",
+  "entityTableName": "book",
   "fields": [
     {
       "fieldName": "name",
@@ -23,13 +16,21 @@
       "fieldValidateRules": []
     }
   ],
-  "changelogDate": "20201017190442",
-  "dto": "mapstruct",
-  "searchEngine": "elasticsearch",
-  "service": "serviceClass",
-  "entityTableName": "book",
-  "databaseType": "sql",
-  "readOnly": false,
+  "fluentMethods": true,
   "jpaMetamodelFiltering": true,
-  "pagination": "infinite-scroll"
+  "name": "Book",
+  "pagination": "infinite-scroll",
+  "readOnly": false,
+  "relationships": [
+    {
+      "otherEntityField": "name",
+      "otherEntityName": "recipe",
+      "otherEntityRelationshipName": "book",
+      "ownerSide": true,
+      "relationshipName": "recipe",
+      "relationshipType": "many-to-many"
+    }
+  ],
+  "searchEngine": "elasticsearch",
+  "service": "serviceClass"
 }

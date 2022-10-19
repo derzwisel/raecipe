@@ -1,0 +1,114 @@
+<div>
+  <h2 id="page-heading" data-cy="BookHeading">
+    <span jhiTranslate="raecipeApp.book.home.title">Books</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
+        <span jhiTranslate="raecipeApp.book.home.refreshListLabel">Refresh list</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-book"
+        [routerLink]="['/book/new']"
+      >
+        <fa-icon icon="plus"></fa-icon>
+        <span class="hidden-sm-down" jhiTranslate="raecipeApp.book.home.createLabel"> Create a new Book </span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  <form name="searchForm" class="row row-cols-sm-auto align-items-center">
+    <div class="col-sm-12">
+      <div class="input-group w-100 mt-3">
+        <label class="visually-hidden" for="currentSearch" jhiTranslate="raecipeApp.book.home.search">Search for Book</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="currentSearch"
+          id="currentSearch"
+          name="currentSearch"
+          placeholder="{{ 'raecipeApp.book.home.search' | translate }}"
+        />
+
+        <button class="btn btn-info" (click)="search(currentSearch)">
+          <fa-icon icon="search"></fa-icon>
+        </button>
+
+        <button class="btn btn-danger" (click)="search('')" *ngIf="currentSearch">
+          <fa-icon icon="trash-alt"></fa-icon>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div class="alert alert-warning" id="no-result" *ngIf="books?.length === 0">
+    <span jhiTranslate="raecipeApp.book.home.notFound">No Books found</span>
+  </div>
+
+  <div class="table-responsive table-entities" id="entities" *ngIf="books && books.length > 0">
+    <table class="table table-striped" aria-describedby="page-heading">
+      <thead>
+        <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
+          <th scope="col" jhiSortBy="id">
+            <div class="d-flex">
+              <span jhiTranslate="global.field.id">ID</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="name">
+            <div class="d-flex">
+              <span jhiTranslate="raecipeApp.book.name">Name</span>
+              <fa-icon class="p-1" *ngIf="!currentSearch" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="published">
+            <div class="d-flex">
+              <span jhiTranslate="raecipeApp.book.published">Published</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody
+        infinite-scroll
+        (scrolled)="loadPage(page + 1)"
+        [infiniteScrollDisabled]="page - 1 >= links['last']"
+        [infiniteScrollDistance]="0"
+      >
+        <tr *ngFor="let book of books; trackBy: trackId" data-cy="entityTable">
+          <td>
+            <a [routerLink]="['/book', book.id, 'view']">{{ book.id }}</a>
+          </td>
+          <td>{{ book.name }}</td>
+          <td>{{ book.published }}</td>
+          <td class="text-end">
+            <div class="btn-group">
+              <button type="submit" [routerLink]="['/book', book.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
+                <fa-icon icon="eye"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+              </button>
+
+              <button type="submit" [routerLink]="['/book', book.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton">
+                <fa-icon icon="pencil-alt"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+              </button>
+
+              <button type="submit" (click)="delete(book)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
+                <fa-icon icon="times"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

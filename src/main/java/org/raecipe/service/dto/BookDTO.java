@@ -1,15 +1,17 @@
 package org.raecipe.service.dto;
 
-import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import javax.validation.constraints.*;
 
 /**
  * A DTO for the {@link org.raecipe.domain.Book} entity.
  */
+@SuppressWarnings("common-java:DuplicatedBlocks")
 public class BookDTO implements Serializable {
-    
+
     private Long id;
 
     @NotNull
@@ -18,7 +20,7 @@ public class BookDTO implements Serializable {
     private Boolean published;
 
     private Set<RecipeDTO> recipes = new HashSet<>();
-    
+
     public Long getId() {
         return id;
     }
@@ -35,7 +37,7 @@ public class BookDTO implements Serializable {
         this.name = name;
     }
 
-    public Boolean isPublished() {
+    public Boolean getPublished() {
         return published;
     }
 
@@ -60,12 +62,16 @@ public class BookDTO implements Serializable {
             return false;
         }
 
-        return id != null && id.equals(((BookDTO) o).id);
+        BookDTO bookDTO = (BookDTO) o;
+        if (this.id == null) {
+            return false;
+        }
+        return Objects.equals(this.id, bookDTO.id);
     }
 
     @Override
     public int hashCode() {
-        return 31;
+        return Objects.hash(this.id);
     }
 
     // prettier-ignore
@@ -74,8 +80,8 @@ public class BookDTO implements Serializable {
         return "BookDTO{" +
             "id=" + getId() +
             ", name='" + getName() + "'" +
-            ", published='" + isPublished() + "'" +
-            ", recipes='" + getRecipes() + "'" +
+            ", published='" + getPublished() + "'" +
+            ", recipes=" + getRecipes() +
             "}";
     }
 }

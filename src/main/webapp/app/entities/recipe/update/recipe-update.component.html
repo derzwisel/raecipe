@@ -1,0 +1,86 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2 id="jhi-recipe-heading" data-cy="RecipeCreateUpdateHeading" jhiTranslate="raecipeApp.recipe.home.createOrEditLabel">
+        Create or edit a Recipe
+      </h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        <div class="row mb-3" *ngIf="editForm.controls.id.value !== null">
+          <label class="form-label" jhiTranslate="global.field.id" for="field_id">ID</label>
+          <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="raecipeApp.recipe.name" for="field_name">Name</label>
+          <input type="text" class="form-control" name="name" id="field_name" data-cy="name" formControlName="name" />
+          <div *ngIf="editForm.get('name')!.invalid && (editForm.get('name')!.dirty || editForm.get('name')!.touched)">
+            <small class="form-text text-danger" *ngIf="editForm.get('name')?.errors?.required" jhiTranslate="entity.validation.required">
+              This field is required.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="raecipeApp.recipe.starred" for="field_starred">Starred</label>
+          <input type="checkbox" class="form-check" name="starred" id="field_starred" data-cy="starred" formControlName="starred" />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="raecipeApp.recipe.tags" for="field_tags">Tags</label>
+          <input type="text" class="form-control" name="tags" id="field_tags" data-cy="tags" formControlName="tags" />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="raecipeApp.recipe.ingredients" for="field_ingredients">Ingredients</label>
+          <input
+            type="text"
+            class="form-control"
+            name="ingredients"
+            id="field_ingredients"
+            data-cy="ingredients"
+            formControlName="ingredients"
+          />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="raecipeApp.recipe.steps" for="field_steps">Steps</label>
+          <input type="text" class="form-control" name="steps" id="field_steps" data-cy="steps" formControlName="steps" />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="raecipeApp.recipe.comment" for="field_comment">Comment</label>
+          <input type="text" class="form-control" name="comment" id="field_comment" data-cy="comment" formControlName="comment" />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="raecipeApp.recipe.duration" for="field_duration">Duration</label>
+          <input type="text" class="form-control" name="duration" id="field_duration" data-cy="duration" formControlName="duration" />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="raecipeApp.recipe.pictures" for="field_pictures">Pictures</label>
+          <input type="text" class="form-control" name="pictures" id="field_pictures" data-cy="pictures" formControlName="pictures" />
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

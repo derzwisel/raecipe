@@ -1,33 +1,32 @@
 package org.raecipe.config;
 
-import io.github.jhipster.config.JHipsterConstants;
-import io.github.jhipster.config.JHipsterProperties;
+import static java.net.URLDecoder.decode;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
+import javax.servlet.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.server.*;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
-import org.springframework.http.MediaType;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-
-import javax.servlet.*;
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
-import java.util.*;
-
-import static java.net.URLDecoder.decode;
+import tech.jhipster.config.JHipsterConstants;
+import tech.jhipster.config.JHipsterProperties;
 
 /**
  * Configuration of web application with Servlet 3.0 APIs.
  */
+@EnableBinding({ KafkaSseConsumer.class, KafkaSseProducer.class })
 @Configuration
 public class WebConfigurer implements ServletContextInitializer, WebServerFactoryCustomizer<WebServerFactory> {
 
@@ -56,21 +55,8 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
      */
     @Override
     public void customize(WebServerFactory server) {
-        setMimeMappings(server);
         // When running in an IDE or with ./gradlew bootRun, set location of the static web assets.
         setLocationForStaticAssets(server);
-    }
-
-    private void setMimeMappings(WebServerFactory server) {
-        if (server instanceof ConfigurableServletWebServerFactory) {
-            MimeMappings mappings = new MimeMappings(MimeMappings.DEFAULT);
-            // IE issue, see https://github.com/jhipster/generator-jhipster/pull/711
-            mappings.add("html", MediaType.TEXT_HTML_VALUE + ";charset=" + StandardCharsets.UTF_8.name().toLowerCase());
-            // CloudFoundry issue, see https://github.com/cloudfoundry/gorouter/issues/64
-            mappings.add("json", MediaType.TEXT_HTML_VALUE + ";charset=" + StandardCharsets.UTF_8.name().toLowerCase());
-            ConfigurableServletWebServerFactory servletWebServer = (ConfigurableServletWebServerFactory) server;
-            servletWebServer.setMimeMappings(mappings);
-        }
     }
 
     private void setLocationForStaticAssets(WebServerFactory server) {
@@ -89,13 +75,7 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
      * Resolve path prefix to static resources.
      */
     private String resolvePathPrefix() {
-        String fullExecutablePath;
-        try {
-            fullExecutablePath = decode(this.getClass().getResource("").getPath(), StandardCharsets.UTF_8.name());
-        } catch (UnsupportedEncodingException e) {
-            /* try without decoding if this ever happens */
-            fullExecutablePath = this.getClass().getResource("").getPath();
-        }
+        String fullExecutablePath = decode(this.getClass().getResource("").getPath(), StandardCharsets.UTF_8);
         String rootPath = Paths.get(".").toUri().normalize().getPath();
         String extractedPath = fullExecutablePath.replace(rootPath, "");
         int extractionEndIndex = extractedPath.indexOf("build/");
@@ -105,18 +85,17 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
         return extractedPath.substring(0, extractionEndIndex);
     }
 
-
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = jHipsterProperties.getCors();
-        if (config.getAllowedOrigins() != null && !config.getAllowedOrigins().isEmpty()) {
+        if (!CollectionUtils.isEmpty(config.getAllowedOrigins()) || !CollectionUtils.isEmpty(config.getAllowedOriginPatterns())) {
             log.debug("Registering CORS filter");
             source.registerCorsConfiguration("/api/**", config);
             source.registerCorsConfiguration("/management/**", config);
-            source.registerCorsConfiguration("/v2/api-docs", config);
+            source.registerCorsConfiguration("/v3/api-docs", config);
+            source.registerCorsConfiguration("/swagger-ui/**", config);
         }
         return new CorsFilter(source);
     }
-
 }

@@ -14,6 +14,8 @@
       "binders": "Message broker",
       "diskSpace": "Festplattenspeicher",
       "mail": "Email",
+      "livenessState": "Liveness state",
+      "readinessState": "Readiness state",
       "ping": "Application",
       "elasticsearch": "Elasticsearch",
       "db": "Datenbank"

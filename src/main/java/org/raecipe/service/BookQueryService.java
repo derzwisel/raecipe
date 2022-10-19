@@ -1,9 +1,14 @@
 package org.raecipe.service;
 
 import java.util.List;
-
 import javax.persistence.criteria.JoinType;
-
+import org.raecipe.domain.*; // for static metamodels
+import org.raecipe.domain.Book;
+import org.raecipe.repository.BookRepository;
+import org.raecipe.repository.search.BookSearchRepository;
+import org.raecipe.service.criteria.BookCriteria;
+import org.raecipe.service.dto.BookDTO;
+import org.raecipe.service.mapper.BookMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -11,16 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import io.github.jhipster.service.QueryService;
-
-import org.raecipe.domain.Book;
-import org.raecipe.domain.*; // for static metamodels
-import org.raecipe.repository.BookRepository;
-import org.raecipe.repository.search.BookSearchRepository;
-import org.raecipe.service.dto.BookCriteria;
-import org.raecipe.service.dto.BookDTO;
-import org.raecipe.service.mapper.BookMapper;
+import tech.jhipster.service.QueryService;
 
 /**
  * Service for executing complex queries for {@link Book} entities in the database.
@@ -68,8 +64,7 @@ public class BookQueryService extends QueryService<Book> {
     public Page<BookDTO> findByCriteria(BookCriteria criteria, Pageable page) {
         log.debug("find by criteria : {}, page: {}", criteria, page);
         final Specification<Book> specification = createSpecification(criteria);
-        return bookRepository.findAll(specification, page)
-            .map(bookMapper::toDto);
+        return bookRepository.findAll(specification, page).map(bookMapper::toDto);
     }
 
     /**
@@ -92,6 +87,10 @@ public class BookQueryService extends QueryService<Book> {
     protected Specification<Book> createSpecification(BookCriteria criteria) {
         Specification<Book> specification = Specification.where(null);
         if (criteria != null) {
+            // This has to be called first, because the distinct method returns null
+            if (criteria.getDistinct() != null) {
+                specification = specification.and(distinct(criteria.getDistinct()));
+            }
             if (criteria.getId() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getId(), Book_.id));
             }
@@ -102,8 +101,10 @@ public class BookQueryService extends QueryService<Book> {
                 specification = specification.and(buildSpecification(criteria.getPublished(), Book_.published));
             }
             if (criteria.getRecipeId() != null) {
-                specification = specification.and(buildSpecification(criteria.getRecipeId(),
-                    root -> root.join(Book_.recipes, JoinType.LEFT).get(Recipe_.id)));
+                specification =
+                    specification.and(
+                        buildSpecification(criteria.getRecipeId(), root -> root.join(Book_.recipes, JoinType.LEFT).get(Recipe_.id))
+                    );
             }
         }
         return specification;

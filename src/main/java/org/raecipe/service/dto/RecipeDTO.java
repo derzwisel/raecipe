@@ -1,14 +1,16 @@
 package org.raecipe.service.dto;
 
-import java.time.Duration;
-import javax.validation.constraints.*;
 import java.io.Serializable;
+import java.time.Duration;
+import java.util.Objects;
+import javax.validation.constraints.*;
 
 /**
  * A DTO for the {@link org.raecipe.domain.Recipe} entity.
  */
+@SuppressWarnings("common-java:DuplicatedBlocks")
 public class RecipeDTO implements Serializable {
-    
+
     private Long id;
 
     @NotNull
@@ -28,7 +30,6 @@ public class RecipeDTO implements Serializable {
 
     private String pictures;
 
-    
     public Long getId() {
         return id;
     }
@@ -45,7 +46,7 @@ public class RecipeDTO implements Serializable {
         this.name = name;
     }
 
-    public Boolean isStarred() {
+    public Boolean getStarred() {
         return starred;
     }
 
@@ -110,12 +111,16 @@ public class RecipeDTO implements Serializable {
             return false;
         }
 
-        return id != null && id.equals(((RecipeDTO) o).id);
+        RecipeDTO recipeDTO = (RecipeDTO) o;
+        if (this.id == null) {
+            return false;
+        }
+        return Objects.equals(this.id, recipeDTO.id);
     }
 
     @Override
     public int hashCode() {
-        return 31;
+        return Objects.hash(this.id);
     }
 
     // prettier-ignore
@@ -124,7 +129,7 @@ public class RecipeDTO implements Serializable {
         return "RecipeDTO{" +
             "id=" + getId() +
             ", name='" + getName() + "'" +
-            ", starred='" + isStarred() + "'" +
+            ", starred='" + getStarred() + "'" +
             ", tags='" + getTags() + "'" +
             ", ingredients='" + getIngredients() + "'" +
             ", steps='" + getSteps() + "'" +

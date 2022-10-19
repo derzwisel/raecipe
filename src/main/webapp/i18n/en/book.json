@@ -3,6 +3,7 @@
     "book": {
       "home": {
         "title": "Books",
+        "refreshListLabel": "Refresh list",
         "createLabel": "Create a new Book",
         "createOrEditLabel": "Create or edit a Book",
         "search": "Search for Book",
@@ -17,6 +18,7 @@
       "detail": {
         "title": "Book"
       },
+      "id": "ID",
       "name": "Name",
       "published": "Published",
       "recipe": "Recipe"
