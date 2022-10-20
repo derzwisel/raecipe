@@ -106,6 +106,9 @@ public class BookQueryService extends QueryService<Book> {
             if (criteria.getCreationDate() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getCreationDate(), Book_.creationDate));
             }
+            if (criteria.getUpdateDate() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getUpdateDate(), Book_.updateDate));
+            }
             if (criteria.getRecipeId() != null) {
                 specification =
                     specification.and(

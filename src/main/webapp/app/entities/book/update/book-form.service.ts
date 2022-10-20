@@ -19,15 +19,16 @@ type BookFormGroupInput = IBook | PartialWithRequiredKeyOf<NewBook>;
 /**
  * Type that converts some properties for forms.
  */
-type FormValueOf<T extends IBook | NewBook> = Omit<T, 'creationDate'> & {
+type FormValueOf<T extends IBook | NewBook> = Omit<T, 'creationDate' | 'updateDate'> & {
   creationDate?: string | null;
+  updateDate?: string | null;
 };
 
 type BookFormRawValue = FormValueOf<IBook>;
 
 type NewBookFormRawValue = FormValueOf<NewBook>;
 
-type BookFormDefaults = Pick<NewBook, 'id' | 'published' | 'creationDate' | 'recipes'>;
+type BookFormDefaults = Pick<NewBook, 'id' | 'published' | 'creationDate' | 'updateDate' | 'recipes'>;
 
 type BookFormGroupContent = {
   id: FormControl<BookFormRawValue['id'] | NewBook['id']>;
@@ -35,6 +36,7 @@ type BookFormGroupContent = {
   published: FormControl<BookFormRawValue['published']>;
   creator: FormControl<BookFormRawValue['creator']>;
   creationDate: FormControl<BookFormRawValue['creationDate']>;
+  updateDate: FormControl<BookFormRawValue['updateDate']>;
   recipes: FormControl<BookFormRawValue['recipes']>;
 };
 
@@ -61,6 +63,7 @@ export class BookFormService {
       published: new FormControl(bookRawValue.published),
       creator: new FormControl(bookRawValue.creator),
       creationDate: new FormControl(bookRawValue.creationDate),
+      updateDate: new FormControl(bookRawValue.updateDate),
       recipes: new FormControl(bookRawValue.recipes ?? []),
     });
   }
@@ -86,6 +89,7 @@ export class BookFormService {
       id: null,
       published: false,
       creationDate: currentTime,
+      updateDate: currentTime,
       recipes: [],
     };
   }
@@ -94,6 +98,7 @@ export class BookFormService {
     return {
       ...rawBook,
       creationDate: dayjs(rawBook.creationDate, DATE_TIME_FORMAT),
+      updateDate: dayjs(rawBook.updateDate, DATE_TIME_FORMAT),
     };
   }
 
@@ -103,6 +108,7 @@ export class BookFormService {
     return {
       ...book,
       creationDate: book.creationDate ? book.creationDate.format(DATE_TIME_FORMAT) : undefined,
+      updateDate: book.updateDate ? book.updateDate.format(DATE_TIME_FORMAT) : undefined,
       recipes: book.recipes ?? [],
     };
   }

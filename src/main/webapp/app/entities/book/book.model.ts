@@ -7,6 +7,7 @@ export interface IBook {
   published?: boolean | null;
   creator?: string | null;
   creationDate?: dayjs.Dayjs | null;
+  updateDate?: dayjs.Dayjs | null;
   recipes?: Pick<IRecipe, 'id' | 'name'>[] | null;
 }
 

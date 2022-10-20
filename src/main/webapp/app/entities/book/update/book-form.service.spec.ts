@@ -24,6 +24,7 @@ describe('Book Form Service', () => {
             published: expect.any(Object),
             creator: expect.any(Object),
             creationDate: expect.any(Object),
+            updateDate: expect.any(Object),
             recipes: expect.any(Object),
           })
         );
@@ -39,6 +40,7 @@ describe('Book Form Service', () => {
             published: expect.any(Object),
             creator: expect.any(Object),
             creationDate: expect.any(Object),
+            updateDate: expect.any(Object),
             recipes: expect.any(Object),
           })
         );

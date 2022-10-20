@@ -22,6 +22,10 @@
     {
       "fieldName": "creationDate",
       "fieldType": "ZonedDateTime"
+    },
+    {
+      "fieldName": "updateDate",
+      "fieldType": "ZonedDateTime"
     }
   ],
   "fluentMethods": true,

@@ -30,6 +30,10 @@
         <dd>
           <span>{{ book.creationDate | formatMediumDatetime }}</span>
         </dd>
+        <dt><span jhiTranslate="raecipeApp.book.updateDate">Update Date</span></dt>
+        <dd>
+          <span>{{ book.updateDate | formatMediumDatetime }}</span>
+        </dd>
         <dt><span jhiTranslate="raecipeApp.book.recipe">Recipe</span></dt>
         <dd>
           <span *ngFor="let recipe of book.recipes; let last = last">

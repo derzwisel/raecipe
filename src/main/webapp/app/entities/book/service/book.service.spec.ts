@@ -9,6 +9,7 @@ import { BookService, RestBook } from './book.service';
 const requireRestSample: RestBook = {
   ...sampleWithRequiredData,
   creationDate: sampleWithRequiredData.creationDate?.toJSON(),
+  updateDate: sampleWithRequiredData.updateDate?.toJSON(),
 };
 
 describe('Book Service', () => {
