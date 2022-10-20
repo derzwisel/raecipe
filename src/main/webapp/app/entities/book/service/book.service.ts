@@ -12,8 +12,9 @@ import { IBook, NewBook } from '../book.model';
 
 export type PartialUpdateBook = Partial<IBook> & Pick<IBook, 'id'>;
 
-type RestOf<T extends IBook | NewBook> = Omit<T, 'creationDate'> & {
+type RestOf<T extends IBook | NewBook> = Omit<T, 'creationDate' | 'updateDate'> & {
   creationDate?: string | null;
+  updateDate?: string | null;
 };
 
 export type RestBook = RestOf<IBook>;
@@ -107,6 +108,7 @@ export class BookService {
     return {
       ...book,
       creationDate: book.creationDate?.toJSON() ?? null,
+      updateDate: book.updateDate?.toJSON() ?? null,
     };
   }
 
@@ -114,6 +116,7 @@ export class BookService {
     return {
       ...restBook,
       creationDate: restBook.creationDate ? dayjs(restBook.creationDate) : undefined,
+      updateDate: restBook.updateDate ? dayjs(restBook.updateDate) : undefined,
     };
   }
 

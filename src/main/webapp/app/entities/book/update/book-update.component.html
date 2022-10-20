@@ -49,6 +49,21 @@
         </div>
 
         <div class="row mb-3">
+          <label class="form-label" jhiTranslate="raecipeApp.book.updateDate" for="field_updateDate">Update Date</label>
+          <div class="d-flex">
+            <input
+              id="field_updateDate"
+              data-cy="updateDate"
+              type="datetime-local"
+              class="form-control"
+              name="updateDate"
+              formControlName="updateDate"
+              placeholder="YYYY-MM-DD HH:mm"
+            />
+          </div>
+        </div>
+
+        <div class="row mb-3">
           <label jhiTranslate="raecipeApp.book.recipe" for="field_recipes">Recipe</label>
           <select
             class="form-control"

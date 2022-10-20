@@ -40,6 +40,9 @@ public class Book implements Serializable {
     @Column(name = "creation_date")
     private ZonedDateTime creationDate;
 
+    @Column(name = "update_date")
+    private ZonedDateTime updateDate;
+
     @ManyToMany
     @JoinTable(name = "rel_book__recipe", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "recipe_id"))
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -112,6 +115,19 @@ public class Book implements Serializable {
         this.creationDate = creationDate;
     }
 
+    public ZonedDateTime getUpdateDate() {
+        return this.updateDate;
+    }
+
+    public Book updateDate(ZonedDateTime updateDate) {
+        this.setUpdateDate(updateDate);
+        return this;
+    }
+
+    public void setUpdateDate(ZonedDateTime updateDate) {
+        this.updateDate = updateDate;
+    }
+
     public Set<Recipe> getRecipes() {
         return this.recipes;
     }
@@ -163,6 +179,7 @@ public class Book implements Serializable {
             ", published='" + getPublished() + "'" +
             ", creator='" + getCreator() + "'" +
             ", creationDate='" + getCreationDate() + "'" +
+            ", updateDate='" + getUpdateDate() + "'" +
             "}";
     }
 }

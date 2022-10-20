@@ -24,6 +24,8 @@ public class BookDTO implements Serializable {
 
     private ZonedDateTime creationDate;
 
+    private ZonedDateTime updateDate;
+
     private Set<RecipeDTO> recipes = new HashSet<>();
 
     public Long getId() {
@@ -66,6 +68,14 @@ public class BookDTO implements Serializable {
         this.creationDate = creationDate;
     }
 
+    public ZonedDateTime getUpdateDate() {
+        return updateDate;
+    }
+
+    public void setUpdateDate(ZonedDateTime updateDate) {
+        this.updateDate = updateDate;
+    }
+
     public Set<RecipeDTO> getRecipes() {
         return recipes;
     }
@@ -104,6 +114,7 @@ public class BookDTO implements Serializable {
             ", published='" + getPublished() + "'" +
             ", creator='" + getCreator() + "'" +
             ", creationDate='" + getCreationDate() + "'" +
+            ", updateDate='" + getUpdateDate() + "'" +
             ", recipes=" + getRecipes() +
             "}";
     }

@@ -23,6 +23,7 @@
       "published": "Published",
       "creator": "Creator",
       "creationDate": "Creation Date",
+      "updateDate": "Update Date",
       "recipe": "Recipe"
     }
   }

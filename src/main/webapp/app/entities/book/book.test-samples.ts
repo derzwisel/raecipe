@@ -8,21 +8,23 @@ export const sampleWithRequiredData: IBook = {
 };
 
 export const sampleWithPartialData: IBook = {
-  id: 75340,
-  name: 'Rhode bandwidth Fresh',
-  creator: 'networks Steel bandwidth',
+  id: 67174,
+  name: 'compress Wooden',
+  creator: 'Pizza multi-byte HTTP',
+  updateDate: dayjs('2020-10-17T05:25'),
 };
 
 export const sampleWithFullData: IBook = {
-  id: 32668,
-  name: 'Analyst Streamlined',
+  id: 70987,
+  name: 'pink',
   published: true,
-  creator: 'harness implement Toys',
-  creationDate: dayjs('2020-10-17T02:44'),
+  creator: 'Egypt Stand-alone',
+  creationDate: dayjs('2020-10-17T09:55'),
+  updateDate: dayjs('2020-10-17T10:55'),
 };
 
 export const sampleWithNewData: NewBook = {
-  name: 'Bedfordshire copying',
+  name: 'implement Toys Naira',
   id: null,
 };
 
